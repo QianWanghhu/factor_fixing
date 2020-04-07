@@ -1,5 +1,4 @@
 import numpy as np
-import chaospy as cp
 from scipy.stats import entropy
 from bisect import bisect
 from scipy import stats
