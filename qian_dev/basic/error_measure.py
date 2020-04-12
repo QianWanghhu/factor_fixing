@@ -37,6 +37,7 @@ def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=Fal
     co_var = {i: None for i in range(num_group)}
     conf_int = {i: None for i in range(num_group)}
     mean_abs = {i: None for i in range(num_group)}
+    result_cond = {i: None for i in range(num_group)}
     # sample_fix = {i: None for i in range(num_group)}
     ind_fix = []
     for i in range(num_group, -1, -1):
@@ -54,19 +55,18 @@ def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=Fal
 
         if  a is None:
             sample_copy[ind_fix, :] = [x_default]
-            results_fix = func(*sample_copy)
-            # import pdb
-            # pdb.set_trace()
+            results_fix = func(sample_copy).flatten()
         else:
             sample_copy[:, ind_fix] = [x_default]
             results_fix = func(sample_copy, a)
         # calculate measures of error
-        # co_var[i] = stats.variation(results_fix)
+        co_var[i] = stats.variation(results_fix)
         ks_stats[i], ks_pvalue[i] = stats.ks_2samp(y_true, results_fix)
-        # conf_int[i] = np.quantile(results_fix, [0.1, 0.90])
-        # temp = np.abs(y_true - results_fix) / y_true
-        # mean_abs[i] = np.average(temp)
-    return  [ks_stats, ks_pvalue] #, conf_int, co_var, mean_abs
+        conf_int[i] = np.quantile(results_fix, [0.10, 0.90])
+        temp = np.abs(y_true - results_fix) / y_true
+        mean_abs[i] = np.average(temp)
+        result_cond[i] = results_fix
+    return  [mean_abs,result_cond] #[ks_stats, ks_pvalue] #[conf_int, co_var]
 # End group_fix()
 
 def probability_cal(y_true, y_cond, bins=100, epsi=1e-50):

@@ -4,7 +4,7 @@ from scipy.stats import uniform
 from basic.boots_pya import least_squares, fun
 from basic.partial_rank import partial_rank
 
-fpath = '../../../Research/pce_fixing/pyfile/John/'
+fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/John/'
 filename = f'{fpath}parameter-ranges.csv'
 ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
 univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(ranges.shape[0]//2)]
@@ -15,26 +15,27 @@ data = np.loadtxt(filename,delimiter=",",skiprows=1)[:,1:]
 samples = data[:,:22].T
 values = data[:,22:]
 values = values[:,:1]# focus on first qoi
-
-# Using pyapprox for sensitivity analysis
-errors, condition_numbers, sensitivity_indices = fun(fpath, variable, samples, values, 
-                                                    ntrials=100, ntrain_samples=None)
 len_params = samples.shape[0]
 
 # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-n_strat, n_end, n_setp = [276, 828, 50]
+n_strat, n_end, n_setp = [276, 828, 46]
 # loops of fun
+errors_cv_all = {}
+errors_bt_all = {}
 partial_results = {}
 for i in range(n_strat, n_end+1, n_setp):
-    errors, condition_numbers, sensitivity_indices = fun(fpath, variable, samples, values, 
-                                                        ntrials=500, ntrain_samples=i)
-
+    errors_cv, errors_bt, sensitivity_indices = fun(variable, samples, values, 
+                                                    nboot=1000, ntrain_samples=i)
     # partial ranking
     sensitivity_indices = np.array(sensitivity_indices)
     sa_shape = sensitivity_indices.shape[0:2]
     sensitivity_indices = sensitivity_indices.reshape((sa_shape))
     rankings = partial_rank(sensitivity_indices,len_params, conf_level=0.95)
     partial_results[f'nsample_{i}'] = rankings
+    errors_cv_all[f'nsample_{i}'] = errors_cv
+    errors_bt_all[f'nsample_{i}'] = errors_bt
 # End for
 
-
+fpath = 'D:/cloudStor/Research/pce_fixing/output/0709_ave_annual/'
+filename = f'{fpath}adaptive-cv-data3.npz'
+np.savez(filename,errors_cv=errors_cv_all,errors_bt=errors_bt_all,sensitivity_indices=partial_results)
