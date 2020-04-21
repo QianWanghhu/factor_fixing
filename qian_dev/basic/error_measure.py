@@ -4,7 +4,7 @@ from bisect import bisect
 from scipy import stats
 from sklearn.metrics import r2_score, mean_squared_error
 
-def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=False):
+def group_fix(partial_result, func, x, y_true, x_default, option_return='conf', file_exist=False):
     """
     Function for compare results between conditioned and unconditioned QoI.
     Fix parameters from the least influential group 
@@ -18,9 +18,11 @@ def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=Fal
         D is the number of parameters
     y_true: list of func results with all x varying (the raw sampling matrix of x)
     x_default: scalar or listdefault values of x
+    option_return: determine what results to return, 
+                    default is upper and lower bounds of confidence_intervals, denoted as'conf'
+    a: coefficients used in func
     file_exist : Boolean for checking whether the partial results is from calculation
                 or reading from the existing file.
-    a: coefficients used in func
     
     Return:
     =======
@@ -32,13 +34,8 @@ def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=Fal
     """
     num_group = len(partial_result) - 1
     # store results from fixing parameters in dict
-    ks_stats = {i: None for i in range(num_group)}
-    ks_pvalue = {i: None for i in range(num_group)}
-    co_var = {i: None for i in range(num_group)}
-    conf_int = {i: None for i in range(num_group)}
-    mean_abs = {i: None for i in range(num_group)}
-    result_cond = {i: None for i in range(num_group)}
-    # sample_fix = {i: None for i in range(num_group)}
+    measure1 = {i: None for i in range(num_group)}
+    measure2 = {i: None for i in range(num_group)}
     ind_fix = []
     for i in range(num_group, -1, -1):
         if file_exist:
@@ -53,20 +50,19 @@ def group_fix(partial_result, func, x, y_true, x_default, a=None, file_exist=Fal
                 ind_fix = partial_result[i]
         sample_copy = np.copy(x) # for pce, x is sampled by dist.sample
 
-        if  a is None:
-            sample_copy[ind_fix, :] = [x_default]
-            results_fix = func(sample_copy).flatten()
-        else:
-            sample_copy[:, ind_fix] = [x_default]
-            results_fix = func(sample_copy, a)
+        sample_copy[ind_fix, :] = [x_default]
+        results_fix = func(sample_copy).flatten()
+
         # calculate measures of error
-        co_var[i] = stats.variation(results_fix)
-        ks_stats[i], ks_pvalue[i] = stats.ks_2samp(y_true, results_fix)
-        conf_int[i] = np.quantile(results_fix, [0.10, 0.90])
-        temp = np.abs(y_true - results_fix) / y_true
-        mean_abs[i] = np.average(temp)
-        result_cond[i] = results_fix
-    return  [mean_abs,result_cond] #[ks_stats, ks_pvalue] #[conf_int, co_var]
+        if option_return == 'conf':
+            measure1[i] = stats.variation(results_fix)
+            measure2[i] = np.quantile(results_fix, [0.025, 0.975])
+        elif option_return =='ks':
+            measure1[i], measure2[i] = stats.ks_2samp(y_true, results_fix)
+        elif option_return == 'raw':
+            measure1[i] = results_fix
+
+    return [measure1, measure2]#[co_var] #[ks_stats, ks_pvalue]， result_cond
 # End group_fix()
 
 def probability_cal(y_true, y_cond, bins=100, epsi=1e-50):
