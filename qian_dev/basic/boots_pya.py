@@ -22,7 +22,7 @@ def least_squares(basis_matrix_function,samples,values):
     coef = np.linalg.lstsq(basis_matrix,values,rcond=None)[0]
     return coef
 
-def pce_fun( variable, samples, values, ntrain_samples, boot_ind=None):
+def pce_fun(variable, samples, values, ntrain_samples, boot_ind=None):
     """
     Help function for only fitting and returning PCE object.
     """
@@ -35,7 +35,7 @@ def pce_fun( variable, samples, values, ntrain_samples, boot_ind=None):
     if ntrain_samples == None:
         ntrain_samples = poly.get_indices().shape[1]*3
     
-    if boot_ind == None:
+    if boot_ind is None:
         train_samples = samples[:,:ntrain_samples]
         train_values = values[:ntrain_samples]
     else:

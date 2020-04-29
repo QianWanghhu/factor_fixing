@@ -34,7 +34,7 @@ def to_df(partial_order, fix_dict):
         len_each_group = [len(value) for k, value in partial_order[key].items()]
         fix_temp = []
 
-        for g, v in fix_dict[key].items():
+        for _, v in fix_dict[key].items():
             if isinstance(v, tuple):
                 fix_temp.extend([v[0]])
             else:
@@ -55,7 +55,7 @@ def cvg_check(partial_order):
             num_res_change.append(key)
     return order_temp, num_res_change      
 
-def names_match(rankings, parameters, fdir, fname):
+def names_match(rankings, param_names):
     """
     This convert the results in partial order of the format index into Veneer_names.
     rankings: dict, partial sort results
@@ -63,9 +63,9 @@ def names_match(rankings, parameters, fdir, fname):
     """
     partial_names = {}
     for key, value in rankings.items():
-        partial_names[key] = parameters.loc[value, 'Veneer_name'].values.tolist()
-    with open(f'{fdir}{fname}', 'w') as fp:
-        json.dump(partial_names, fp, indent=2)
+        partial_names[key] = param_names[value]
+    # with open(f'{fdir}{fname}', 'w') as fp:
+    #     json.dump(partial_names, fp, indent=2)
     
 
 def epsi_cal(x, y):
