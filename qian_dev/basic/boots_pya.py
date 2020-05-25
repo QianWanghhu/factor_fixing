@@ -80,7 +80,7 @@ def fun(variable, samples, values, nboot=500, ntrain_samples=None):
     if ntrain_samples == None:
         ntrain_samples = poly.get_indices().shape[1]*3
 
-    errors_cv,errors_bt,sensitivity_indices = [],[], []
+    errors_cv,errors_bt, main_sensitivity, sensitivity_indices = [], [], [], []
     # Cross-validation
     kf = KFold(n_splits=10)
     x_cv = samples[:,:ntrain_samples]
@@ -112,9 +112,10 @@ def fun(variable, samples, values, nboot=500, ntrain_samples=None):
         
         error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(validation_values)
 
-        _, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
+        main_effect, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
 
         errors_bt.append(error)
         # condition_numbers.append(cond)
         sensitivity_indices.append(total_effect)
-    return errors_cv, errors_bt, sensitivity_indices
+        main_sensitivity.append(main_effect)
+    return errors_cv, errors_bt, main_sensitivity, sensitivity_indices
