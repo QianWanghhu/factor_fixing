@@ -8,7 +8,7 @@ from basic.partial_rank import partial_rank
 # define the distribution of the first parameter
 from pyapprox.random_variable_algebra import product_of_independent_random_variables_pdf
 # import the original parameter sets
-fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/John/'
+fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/pya_related/'
 filename = f'{fpath}parameter-ranges.csv'
 raw_parameters = pd.read_csv(filename)
 ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
