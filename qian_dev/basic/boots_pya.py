@@ -22,11 +22,10 @@ def least_squares(basis_matrix_function,samples,values):
     coef = np.linalg.lstsq(basis_matrix,values,rcond=None)[0]
     return coef
 
-def pce_fun(variable, samples, values, ntrain_samples, boot_ind=None):
+def pce_fun(variable, samples, values, ntrain_samples, degree=2, boot_ind=None):
     """
     Help function for only fitting and returning PCE object.
     """
-    degree=2
     poly = pya.get_polynomial_from_variable(variable)
     poly.set_indices(pya.compute_hyperbolic_indices(
         variable.num_vars(),degree))
@@ -85,8 +84,8 @@ def fun(variable, samples, values, nboot=500, ntrain_samples=None):
     kf = KFold(n_splits=10)
     x_cv = samples[:,:ntrain_samples]
     y_cv = values[:ntrain_samples]
-    start_validation = poly.get_indices().shape[1]*3
-
+    start_validation = ntrain_samples
+    
     for train_index, test_index in kf.split(x_cv.T):
         x_train, x_test = x_cv[:,train_index], x_cv[:,test_index]
         y_train, y_test = y_cv[train_index], y_cv[test_index]
@@ -110,7 +109,7 @@ def fun(variable, samples, values, nboot=500, ntrain_samples=None):
         poly.set_coefficients(coef)
         approx_values = poly(validation_samples)
         
-        error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(validation_values)
+        error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
 
         main_effect, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
 
