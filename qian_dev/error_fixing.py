@@ -12,7 +12,7 @@ from basic.boots_pya import pce_fun
 from scipy.stats import uniform
 from basic.boots_pya import least_squares, fun
 
-fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/John/'
+fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/pya_related/'
 filename = f'{fpath}parameter-ranges.csv'
 ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
 univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(ranges.shape[0]//2)]
