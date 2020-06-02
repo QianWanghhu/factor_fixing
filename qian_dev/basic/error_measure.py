@@ -20,7 +20,6 @@ def group_fix(partial_result, func, x, y_true, x_default, option_return='conf', 
     x_default: scalar or listdefault values of x
     option_return: determine what results to return, 
                     default is upper and lower bounds of confidence_intervals, denoted as'conf'
-    a: coefficients used in func
     file_exist : Boolean for checking whether the partial results is from calculation
                 or reading from the existing file.
     
@@ -56,7 +55,7 @@ def group_fix(partial_result, func, x, y_true, x_default, option_return='conf', 
 
         # calculate measures of error
         if option_return == 'conf':
-            # edit the coefficient of variation using pyaaprox
+            # edit the coefficient of variation using pyapprox
             if ind_fix.shape[0] == x.shape[0]:
                 measure1[i] = 0
                 # mean_df[i] = func.mean()[0]
@@ -180,10 +179,10 @@ def ecdf(yt, yc):
     Fi[yc[:] < yt[0]] = 0
 
     return Fi
-    min_y = y_true.min()
-    max_y = y_true.max()
+    min_y = yt.min()
+    max_y = yt.max()
     # print(min_y, max_y)
-    y_intervals = np.linspace(min_y, max_y, bins)
+    y_intervals = np.linspace(min_y, max_y)
     # sort y in ascending order
     y_cond.sort()
     y_len = len(y_cond)
