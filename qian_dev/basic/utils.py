@@ -44,6 +44,7 @@ def to_df(partial_order, fix_dict):
         fix_df[key]  = np.repeat(fix_temp, len_each_group)
 
     fix_df = pd.DataFrame.from_dict(fix_df)
+    fix_df.index = np.arange(fix_df.shape[0], 0, -1)
     return fix_df
     
 def cvg_check(partial_order):
@@ -65,10 +66,10 @@ def names_match(rankings, param_names):
     """
     partial_names = {}
     for key, value in rankings.items():
-        partial_names[key] = param_names[value]
+        partial_names[key] = [param_names[v] for v in value]
     # with open(f'{fdir}{fname}', 'w') as fp:
     #     json.dump(partial_names, fp, indent=2)
-    
+    return partial_names
 
 def epsi_cal(x, y):
     """
