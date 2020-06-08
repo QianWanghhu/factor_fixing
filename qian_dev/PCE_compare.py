@@ -11,6 +11,8 @@ import seaborn as sns
 from SALib.plotting.bar import plot as barplot
 from SALib.util import read_param_file
 from basic.boots_pya import least_squares, pce_fun, fun
+from basic.partial_rank import partial_rank
+from basic.utils import names_match
 
 rc("text", usetex=False)
 def plot(sa_df, sav=False, figname=None):
@@ -68,20 +70,12 @@ index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17],
                          [19, 20],
                          ])
 
-                        
-poly_raw, error_raw = pce_fun(variable, samples, values, ntrain_samples=552, degree=2)
-_, _, main_effects, total_effects = fun(variable, samples, values, nboot=500, ntrain_samples=552)
-sa_df = df_format(main_effects, total_effects, variable, param_all, conf_level=0.95)
-plot(sa_df, sav=True, figname='sa_PCE_analytical2.png')
-
-
 # define variables with Beta distribution
 filename = f'{fpath}parameter-adjust.csv'
 variable_adjust = variables_prep(filename, product_uniform=True)
 param_adjust = pd.read_csv(filename)
 beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
             index.to_list()
-param_names = param_adjust.loc[beta_index, 'Veneer_name'].values
 
 samples_adjust = np.copy(samples)
 pars_delete = []
@@ -92,16 +86,24 @@ for ii in range(list(index_product.shape)[0]):
     pars_delete.extend(index_temp[1:])
 samples_adjust = np.delete(samples_adjust, pars_delete, axis=0)
 
-ntrain_samples = 198
+ntrain_samples = 552
+# poly_beta, error = pce_fun(variable_adjust, samples_adjust, 
+#                     values, ntrain_samples, degree=3)
+# approx_values = poly_beta(samples_adjust)                    
+# error_vali = np.linalg.norm(approx_values - values) / np.linalg.norm(values)
+nboot = 1000
+error_cv, error_bt, main_effects, total_effects = fun(variable, samples, 
+                                            values, degree=2, nboot=nboot, 
+                                            ntrain_samples=ntrain_samples)
+print(np.mean(error_cv), np.std(error_cv))
 
-poly_beta, error = pce_fun(variable_adjust, samples_adjust, 
-                    values, ntrain_samples, degree=2)
-approx_values = poly_beta(samples_adjust)                    
-error_vali = np.linalg.norm(approx_values - values) / np.linalg.norm(values)
+sa_df = df_format(main_effects, total_effects, variable, 
+                param_all, conf_level=0.95)
+sa_df.to_csv(f'{fpath_save}sa_pce_raw.csv', index=True)
 
-error_cv, error_bt, main_effects, total_effects = fun(variable_adjust, samples_adjust, 
-                                            values, nboot=500, ntrain_samples=ntrain_samples)
-
-sa_df = df_format(main_effects, total_effects, variable_adjust, 
-                param_adjust.loc[:, 'Veneer_name'].values, conf_level=0.95)
 plot(sa_df) # , sav=True, figname='sa_PCE_Beta_degree2_uniform.png'
+
+total_effects = np.array(total_effects)
+total_effects = total_effects.reshape(nboot, variable_adjust.num_vars())
+rankings = partial_rank(total_effects, variable_adjust.num_vars())
+rank_names = names_match(rankings, param_adjust.loc[:, 'Veneer_name'].values)
