@@ -50,7 +50,7 @@ def pce_fun(variable, samples, values, ntrain_samples, degree=2, boot_ind=None):
     return poly, error
 
 
-def fun(variable, samples, values, nboot=500, ntrain_samples=None):
+def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
     """
     Function to train PCE and conduct boostrap.
     Parameters:
@@ -70,7 +70,6 @@ def fun(variable, samples, values, nboot=500, ntrain_samples=None):
     errors_bt: list, errors calculated from bootstrap
     sensitivity_indices: list, total effects for all the bootstraps
     """
-    degree=2
     poly = pya.get_polynomial_from_variable(variable)
     poly.set_indices(pya.compute_hyperbolic_indices(
         variable.num_vars(),degree))
