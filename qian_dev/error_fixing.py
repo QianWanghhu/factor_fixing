@@ -8,14 +8,17 @@ from SALib.util import read_param_file
 
 # from utils import cvg_check
 from basic.utils import cvg_check
-from basic.error_measure import group_fix
 from basic.boots_pya import pce_fun 
 from scipy.stats import uniform
 from basic.boots_pya import least_squares, fun
 from basic.utils import variables_prep, to_df
 
+%load_ext autoreload
+%autoreload 2
+from basic.error_measure import group_fix
+
 reduce_params = True
-if reduce_params == True:
+if reduce_params:
     file_list = ['parameter-adjust', 'samples_adjust', 'reduce_params', 'partial_reduce_params']
 else:
     file_list = ['parameter-ranges', 'test_qian', 'full_params', 'partial_pya']
@@ -37,6 +40,8 @@ problem = read_param_file(filename, delimiter=',')
 x_sample = latin.sample(problem, 1000, seed=88)
 x_sample = x_sample.T
 
+x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1))
+
 # if reduce parameters, adapt samples
 if (variable.num_vars()) == 11:
     index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17], 
@@ -48,9 +53,11 @@ if (variable.num_vars()) == 11:
     for ii in range(list(index_product.shape)[0]):
         index_temp = index_product[ii]
         samples_adjust[index_temp[0], :] = np.prod(samples_adjust[index_temp, :], axis=0)
+        x_fix[index_temp[0]] = np.prod(x_fix[index_temp], axis=0)
         # samples_adjust[index_temp[1:], :] = 1
         pars_delete.extend(index_temp[1:])
     samples_adjust = np.delete(samples_adjust, pars_delete, axis=0)
+    x_fix = np.delete(x_fix, pars_delete, axis=0)
     x_sample = samples_adjust
 
 # load partial order results
@@ -73,11 +80,10 @@ for key, value in partial_order.items():
     y_uncond_temp = poly(x_sample).flatten()
     conf_uncond[key] = np.quantile(y_uncond_temp, [0.025, 0.975])
     measure1[key], measure2[key] = group_fix(value, poly, x_sample, 
-                                    y_uncond_temp, 1, option_return='ks', file_exist=True)
-# print(kl_dict)
+                                    y_uncond_temp, x_fix, option_return=option_return, file_exist=True)
 
 # separate confidence intervals into separate dicts
-fpath_save = f'D:/cloudStor/Research/pce_fixing/output/0709_ave_annual/{file_list[2]}/'
+fpath_save = f'D:/cloudStor/Research/pce_fixing/output/0709_ave_annual/{file_list[2]}/fix_average/'
 if option_return=='conf':
 # if the measure is confidence intervals
     low_conf, up_conf = {}, {}
