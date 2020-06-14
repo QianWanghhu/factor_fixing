@@ -62,14 +62,18 @@ def samples_df(sample_method='samples_product', Nsamples = 2000):
     return df
 
 # expand the samples with other parameters set to a fixed value
-df = samples_df(sample_method='samples_product', Nsamples = 2000)
-y_range_change = np.round(poly(df.T), 4).reshape(list(df.shape)[0])
-sa, main_resample, total_resample = sobol.analyze(problem_adjust, 
-                                    y_range_change, calc_second_order=False, 
-                                    num_resamples=1000, conf_level=0.95, seed=88)
+rankings = {}
+rank_names = {}
+for n in range(200, 2001, 200):
+    df = samples_df(sample_method='samples_product', Nsamples = n)
+    y_range_change = np.round(poly(df.T), 4).reshape(list(df.shape)[0])
+    sa, main_resample, total_resample = sobol.analyze(problem_adjust, 
+                                        y_range_change, calc_second_order=False, 
+                                        num_resamples=1000, conf_level=0.95, seed=88)
 
-rankings = partial_rank(total_resample.T, problem_adjust['num_vars'])
-rank_names = names_match(rankings, problem_adjust['names'])
+    rankings[f'nsample_{n}'] = partial_rank(total_resample.T, problem_adjust['num_vars'])
+    rank_names[f'nsample_{n}'] = names_match(rankings[f'nsample_{n}'], problem_adjust['names'])
+
 
 sa_df = pd.DataFrame.from_dict(sa)
 sa_df.index = problem_adjust['names']
