@@ -12,8 +12,8 @@ rc("text", usetex=False)
 from basic.utils import variables_prep
 
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/pya_related/'
-filename = f'{fpath}parameter-ranges.csv'
+filepath = 'data/'
+filename = f'{filepath}parameter-reimplement.csv'
 variable = variables_prep(filename, product_uniform=False)
 index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17],
                          [6, 5, 7], 
@@ -21,8 +21,7 @@ index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17],
                          ])
 
 # Check whether the Beta distribution is a proper option
-fpath = 'D:/cloudStor/Research/pce_fixing/pyfile/pya_related/'
-filename = f'{fpath}parameter-adjust.csv'
+filename = f'{filepath}parameter-adjust.csv'
 param_adjust = pd.read_csv(filename)
 beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
             index.to_list()
@@ -32,6 +31,7 @@ param_names = param_adjust.loc[beta_index, 'Veneer_name'].values
 num_samples = 20000
 samples_uniform = generate_independent_random_samples(variable, num_samples)
 beta_fit = np.zeros(shape=(len(param_names), 4))
+
 for ii in range(list(index_product.shape)[0]):
     index_temp = index_product[ii]
     samples_uniform[index_temp[0], :] = np.prod(samples_uniform[index_temp, :], axis=0)
@@ -55,7 +55,7 @@ for ii in range(list(index_product.shape)[0]):
 # End for
 # plot CDFs of the fitted Beta distribution and samples
 
-fpath_save = 'D:/cloudStor/Research/pce_fixing/output/linear_dep/'
+filepath_save = 'D:/cloudStor/Research/pce_fixing/output/linear_dep/'
 def plot_dists(beta_aguments, rv_product, ii):
     x = np.sort(rv_product)
     def ecdf(x):
@@ -76,4 +76,4 @@ for ii in range(list(index_product.shape)[0]):
     beta_aguments = beta_fit[ii]
     parameter = param_names[ii]
     plot_dists(beta_aguments, rv_product, ii)
-plt.savefig(f'{fpath_save}beta_compare.png', format='png', dpi=300)
+plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
