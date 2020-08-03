@@ -3,16 +3,6 @@ import pandas as pd
 import pyapprox as pya
 from scipy.stats import uniform, beta
 
-# def to_df(measure_dict, measure_name):
-#     """
-#     Help funtion to convert the dictionary of results into dataframe.
-#     """
-#     measure_df = {}
-#     k = 0
-#     for key, value in measure_dict.items():
-#         measure_df[key] =  pd.DataFrame(value, index=measure_name)
-#         k += 1
-#     return measure_df
 def to_df(partial_order, fix_dict):
     """
     Help function to convert difference between 
