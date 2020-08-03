@@ -1,0 +1,12 @@
+Veneer_name,Veneer_location,min,max,distribution,a,b,raw_index
+bankErosionCoeff,v.model.link.constituents,0.1653,3.1411,beta,3.4792,10.5901,1
+eventMeanConcentration,v.model.catchment.generation,0.8,1.2,uniform,,,4
+HillslopeFineSDR,v.model.catchment.generation,0.405,1.1,beta,2.1366,2.6881,6
+RiparianVegPercent,v.model.link.constituents,0.9,1.1,uniform,,,8
+USLE_HSDR_Fine,v.model.catchment.generation,0.85,1.15,uniform,,,12
+A3,v.model.catchment.generation,0.8,1.2,uniform,,,13
+RainThreshold,v.model.catchment.generation,0.8,1.2,uniform,,,14
+Beta,v.model.catchment.generation,0.9,1.1,uniform,, ,15
+LongTermAvDailyFlow,v.model.link.constituents,0.9,1.1,uniform,,,18
+Gully_Management_Practice_Factor,v.model.catchment.generation,0.81,1.1,beta,2.1206,2.298,19
+maxRiparianVegEffectiveness,v.model.link.constituents,0.95,1.05,uniform,,,21
