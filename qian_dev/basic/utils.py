@@ -87,6 +87,12 @@ def epsi_cal(x, y):
 def variables_prep(filename, product_uniform=False):
     """
     Help function for preparing the data training data to fit PCE.
+    Parameters:
+    ===========
+    filename : str
+    product_uniform : Bool, if false, uniform distributions are used; 
+                    else, beta distributions are used for variables which are adapted considering the correlations
+
     """
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     if product_uniform == False:    
