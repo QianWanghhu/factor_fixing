@@ -78,7 +78,7 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
     if ntrain_samples == None:
         ntrain_samples = poly.get_indices().shape[1]*3
 
-    errors_cv,errors_bt, main_sensitivity, sensitivity_indices = [], [], [], []
+    errors_cv, main_sensitivity, sensitivity_indices = [], [], []
     # Cross-validation
     kf = KFold(n_splits=10)
     x_cv = samples[:,:ntrain_samples]
@@ -103,17 +103,17 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
         # # compute condition number of training set
         # cond = np.linalg.cond(poly.basis_matrix(train_samples))
 
-        validation_samples = samples[:,start_validation:]
-        validation_values = values[start_validation:]
-        poly.set_coefficients(coef)
-        approx_values = poly(validation_samples)
+        # validation_samples = samples[:,start_validation:]
+        # validation_values = values[start_validation:]
+        # poly.set_coefficients(coef)
+        # approx_values = poly(validation_samples)
         
-        error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
+        # error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
 
         main_effect, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
 
-        errors_bt.append(error)
+        # errors_bt.append(error)
         # condition_numbers.append(cond)
         sensitivity_indices.append(total_effect)
         main_sensitivity.append(main_effect)
-    return errors_cv, errors_bt, main_sensitivity, sensitivity_indices
+    return errors_cv, main_sensitivity, sensitivity_indices
