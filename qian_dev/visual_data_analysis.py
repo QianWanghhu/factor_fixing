@@ -77,15 +77,23 @@ plot_heatmap(df, save=True, save_name='normalized_median')
 
 
 # sensitivity plot
+def short_name(df):
+    fp = '../data/'
+    name_df = pd.read_csv(f'{fp}parameter-reimplement.csv')
+    df['short_name'] = None
+    for ii in range(df.shape[0]):
+        df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values 
+    return df
+
 # clean the dataframe ordered by the sampling-based sensitivity indices
 fpath_save = '../output/paper/'
 filename = ['sa_samples_product', 'sa_pce_uniform', 'sa_pce_beta']
-df_raw = pd.read_csv(f'{fpath_save}{filename[2]}.csv').filter(
+df_raw = pd.read_csv(f'{fpath_save}{filename[1]}.csv').filter(
                     items=['Unnamed: 0', 'ST', 'ST_conf'])
 df_raw.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
 # df_raw.set_index('Parameters', drop=True)
 
-df_sampling = pd.read_csv(f'{fpath_save}{filename[1]}.csv').filter(items=
+df_sampling = pd.read_csv(f'{fpath_save}{filename[0]}.csv').filter(items=
                     ['Unnamed: 0', 'ST', 'ST_conf'])
 df_sampling.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
 df_sampling = df_sampling.sort_values(by='ST', ascending=False)
@@ -99,38 +107,24 @@ df_sampling['Model_group'] = np.arange(df_sampling.shape[0])
 df_sampling['Type'] = 'Sampling'
 df_sampling['Type_num'] = 0
 df_raw['Model_group'] = None
-if ((df_raw.shape[0]) == (df_sampling.shape[0])) == True:
-    df_raw['Type'] = 'PCE-Uniform'
-    df_raw['Type_num'] = 2
-    df_beta = pd.read_csv(f'{fpath_save}{filename[3]}.csv').filter(items=
-                    ['Unnamed: 0', 'ST', 'ST_conf'])
-    df_beta.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
-    df_beta['Type'] = 'PCE-Beta'
-    df_beta['Type_num'] = 1
-else:
-    df_raw['Type'] = 'PCE'
-    df_raw['Type_num'] = 1
+df_raw['Type'] = 'PCE-Uniform'
+df_raw['Type_num'] = 2
+df_beta = pd.read_csv(f'{fpath_save}{filename[2]}.csv').filter(items=
+                ['Unnamed: 0', 'ST', 'ST_conf'])
+df_beta.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
+df_beta['Type'] = 'PCE-Beta'
+df_beta['Type_num'] = 1
 
 for ii in range(df_sampling.shape[0]):
     param = df_sampling.Parameters[ii]
     df_raw.loc[df_raw[df_raw.Parameters==param].index, 'Model_group'] = df_sampling.Model_group[ii]
-    # df_beta.loc[df_beta[df_beta.Parameters==param].index, 'Model_group'] = df_sampling.Model_group[ii]
+    df_beta.loc[df_beta[df_beta.Parameters==param].index, 'Model_group'] = df_sampling.Model_group[ii]
 if ((df_raw.shape[0]) == (df_sampling.shape[0])) == True:
-    df_plot = pd.concat([df_raw, df_sampling]) # , df_beta
-else:
-    for jj in index_product:
-        df_raw.loc[jj[1:], 'Model_group'] = df_raw.Model_group[jj[0]]
-    df_plot = pd.concat([df_raw, df_sampling])
+    df_plot = pd.concat([df_raw, df_sampling, df_beta])
+
 df_plot = df_plot.sort_values(by=['Model_group', 'Type_num', 'ST'], ascending=[True, True, False]).reset_index(drop=True)
 
-def short_name(df):
-    fp = '../data/'
-    name_df = pd.read_csv(f'{fp}parameter-reimplement.csv')
-    df['short_name'] = None
-    for ii in range(df.shape[0]):
-        df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values
-    
-    return df
+
 df_plot = short_name(df_plot)
 
 names_update = ['bankErosionCoeff', 'HillslopeFineSDR', 'Gully_Management_Practice_Factor']
@@ -143,33 +137,19 @@ for ii in range(len(names_update)):
 # the new style of plot for sensitivity
 df_plot = df_sampling.filter(items=['Parameters', 'ST', 'ST_conf'])
 df_plot.rename(columns={'ST': 'ST_sampling'})
-df_plot['ST_Beta'] = df_beta.ST
-df_plot['ST_conf_Beta'] = df_beta.ST_conf
-df_plot['ST_Uniform'] = df_raw.ST
-df_plot['ST_conf_Uniform'] = df_raw.ST_conf
+df_plot['ST_Beta'], df_plot['ST_conf_Beta'] = df_beta.ST, df_beta.ST_conf
+df_plot['ST_Uniform'], df_plot['ST_conf_Uniform'] = df_raw.ST, df_raw.ST_conf
+
 df_plot = short_name(df_plot)
 names_update = ['bankErosionCoeff', 'HillslopeFineSDR', 'Gully_Management_Practice_Factor']
 new_short_name = ['new_BEC', 'new_HFSDR', 'new_GMPF']
 for ii in range(len(names_update)):
     df_plot.loc[df_plot[df_plot.Parameters==names_update[ii]].index, 'short_name'] = new_short_name[ii]
 
-ax = df_plot.plot(x='short_name', y=['ST','ST_Beta', 'ST_Uniform' ], kind='bar', 
-                yerr=df_plot.loc[:, ['ST_conf','ST_conf_Beta', 'ST_conf_Uniform' ]].T.values, 
-                legend=True, logy=False)
-ax.set_ylabel('Total effects', fontsize=10)
-ax.set_xlabel('Parameters', fontsize=10);         
-# plt.savefig(f'{fpath_save}sentivity_fig2-2.png', format='png', dpi=300, bbox_inches='tight') 
+# save df_plot
+df_plot.to_csv(f'{fpath_save}/sa_fig2.csv')
 
 
-# sensitivity plot
-def short_name(df):
-    fp = '../data/'
-    name_df = pd.read_csv(f'{fp}parameter-reimplement.csv')
-    df['short_name'] = None
-    for ii in range(df.shape[0]):
-        df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values
-    
-    return df
 # clean the dataframe ordered by the sampling-based sensitivity indices
 fpath_save = '../output/paper/'
 filename = ['sa_pce_raw', 'sa_samples_product']
@@ -181,18 +161,11 @@ df_sampling = pd.read_csv(f'{fpath_save}{filename[1]}.csv').filter(items=
                     ['Unnamed: 0', 'ST', 'ST_conf'])
 df_sampling.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
 df_sampling = df_sampling.sort_values(by='ST', ascending=False)
-index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17], 
-                         [6, 5, 7], 
-                         [19, 20],
-                         ])
 
 # model_group and the type of calculation to the dataframe
-df_sampling['Model_group'] = np.arange(df_sampling.shape[0])
-df_sampling['Type'] = 'Sampling'
-df_sampling['Type_num'] = 0
-df_raw['Model_group'] = None
-df_raw['Type'] = 'PCE'
-df_raw['Type_num'] = 1
+df_sampling['Model_group'], df_sampling['Type'], df_sampling['Type_num'] = \
+    np.arange(df_sampling.shape[0]), 'Sampling', 0
+df_raw['Model_group'], df_raw['Type'], df_raw['Type_num'] = None, 'PCE', 1
 
 for ii in range(df_sampling.shape[0]):
     param = df_sampling.Parameters[ii]
@@ -202,7 +175,6 @@ for jj in index_product:
     df_raw.loc[jj[1:], 'Model_group'] = df_raw.Model_group[jj[0]]
 df_plot = pd.concat([df_raw, df_sampling])
 df_plot = df_plot.sort_values(by=['Model_group', 'Type_num', 'ST'], ascending=[True, True, False]).reset_index(drop=True)
-
 df_plot = short_name(df_plot)
 
 names_update = ['bankErosionCoeff', 'HillslopeFineSDR', 'Gully_Management_Practice_Factor']
@@ -213,35 +185,3 @@ for ii in range(len(names_update)):
 
 df_plot.to_csv(f'{fpath_save}/sa_fig1.csv')
 
-
-sns.set_style('white')
-import matplotlib.patches as patches
-current_palette = sns.color_palette()
-# sns.set_color_codes(current_palette)
-fig = plt.figure(figsize=(8, 6))
-colors = list(np.where(df_plot.Type_num == 0, 0, 2))
-colors = [current_palette[c] for c in colors]
-ax = df_plot.plot(x='short_name', y='ST', kind='bar', 
-                yerr='ST_conf', color=colors, legend=False, logy=False)
-ax.set_ylabel('Total effects', fontsize=10)
-ax.set_xlabel('Parameters', fontsize=10)
-ax.tick_params(axis='x', which='major', labelsize=8)
-index = [0, 20, 28]
-xmin, ymin = [-0.3, 19.5, 27.5], 0
-height, width = 0.79, [9.8, 3, 3]
-for i  in range(len(index)):
-    ax.add_patch(
-        patches.Rectangle(
-            xy=(xmin[i], ymin),  # point of origin.
-            width=width[i],
-            height=height,
-            linewidth=1,
-            color=current_palette[1],
-            fill=False,
-            linestyle='--'
-        )
-)   
-SPL = mpatches.Patch(color=current_palette[0], label='Sampling')
-PCE_Beta = mpatches.Patch(color=current_palette[2], label='PCE')
-ax.legend(handles=[SPL, PCE_Beta], fontsize=8, loc=9) 
-# plt.savefig(f'{fpath_save}sentivity_fig1.png', format='png', dpi=300, bbox_inches='tight')
