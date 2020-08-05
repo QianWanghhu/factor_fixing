@@ -32,9 +32,3 @@ def plot_error_cv(df, save_fig, save_path):
         plt.savefig(f'{save_path}error-cv-reduce.png', dpi = 300, format = 'png')
     else:
         plt.show()
-
-# Plot errors of cross-validation
-filepath = 'output/paper/'
-filename = 'error_cv_beta.csv'
-error_stats = pd.read_csv(f'{filepath}{filename}', index_col = 'index')
-plot_error_cv(error_stats, save_fig = True, save_path = f'{filepath}figure/')
