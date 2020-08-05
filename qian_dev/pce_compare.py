@@ -51,15 +51,13 @@ def main():
     # PCE with 11 parameters of uniform distributions
     filename = f'{fpath_input}parameter-adjust.csv'
     variable_uniform = variables_prep(filename, product_uniform=False)
-    variable_beta = variables_prep(filename, product_uniform=False)
+    variable_beta = variables_prep(filename, product_uniform=True)
     param_reduce = pd.read_csv(filename).loc[:, 'Veneer_name'].values
 
-    fpath_save = 'output/paper/'
     # import samples and values
     filename = f'{fpath_save}samples_adjust.csv'
     data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
     samples_adjust = data[:, :11].T
-    values = data[:, 11:]
     
     for ntrain in [156, 234, 552]:
         error_cv_uniform, main_effects, total_effects = fun(variable_uniform, samples_adjust, 
@@ -86,7 +84,7 @@ def main():
     error_stats_df = pd.DataFrame(data=[error_cv_mean, error_cv_std], 
                 index=['mean', 'std']).T
     error_stats_df.index = error_cv_df.columns
-    # error_stats_df.to_csv(f'{fpath_save}error_cv_compare.csv', index=True)
+    error_stats_df.to_csv(f'{fpath_save}error_cv_compare.csv', index=True)
  
 
 if __name__ == "__main__":
