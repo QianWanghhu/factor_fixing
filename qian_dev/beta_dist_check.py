@@ -15,10 +15,7 @@ from basic.utils import variables_prep
 filepath = 'data/'
 filename = f'{filepath}parameter-reimplement.csv'
 variable = variables_prep(filename, product_uniform=False)
-index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17],
-                         [6, 5, 7], 
-                         [19, 20],
-                         ])
+index_product = np.load(f'{input_path}index_prodcut.npy', allow_pickle=True)
 
 # Check whether the Beta distribution is a proper option
 filename = f'{filepath}parameter-adjust.csv'
