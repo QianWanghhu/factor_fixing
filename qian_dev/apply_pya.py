@@ -17,7 +17,7 @@ from basic.utils import variables_prep
 def pya_boot_sensitivity(product_uniform=True):
     file_input = 'data/'
     filename = f'{file_input}parameter-adjust.csv'
-    variable = variables_prep(filename, product_uniform=True)
+    variable = variables_prep(filename, product_uniform)
 
     file_sample = 'output/paper/'
     filename = f'{file_sample}samples_adjust.csv'
@@ -30,12 +30,13 @@ def pya_boot_sensitivity(product_uniform=True):
     n_strat, n_end, n_setp = [78, 235, 13]
     # loops of fun
     errors_cv_all = {}
-    errors_bt_all = {}
+    # errors_bt_all = {}
     partial_results = {}
     for i in range(n_strat, n_end+1, n_setp):
+        print(i)
         errors_cv, main_effects, total_effects = fun(variable, samples, 
-                                                            values, degree=2, 
-                                                            nboot=1000, ntrain_samples=i)
+                                                    values, degree=2, 
+                                                    nboot=1000, ntrain_samples=i)
         # partial ranking
         total_effects = np.array(total_effects)
         sa_shape = list(total_effects.shape)[0:2]
@@ -81,4 +82,4 @@ def main(product_uniform=True):
         json.dump(sensitivity_indices, fp, indent=2)
     
 if __name__ == "__main__":
-    main(product_uniform=True)
+    main(product_uniform=False)
