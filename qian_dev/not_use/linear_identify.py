@@ -148,10 +148,8 @@ df.to_csv(f'{fpath}analytical_second.csv', index_label='parameters', sep=',')
 from itertools import combinations
 from matplotlib import rc
 rc("text", usetex=False)
-index_product = np.array([[0, 1, 2, 3, 9, 10, 11, 16, 17, 18], 
-                         [5, 6, 7], 
-                         [19, 20],
-                         [0, 5, 19, 4, 8, 12, 13, 14, 15, 21]])
+index_product = np.load(f'{input_path}index_prodcut.npy', allow_pickle=True)
+
 index_combs = np.array(list(combinations(index_product[3], 2)))
 # index_combs = np.vstack((index_combs, index_product[-1]))
 num_subplots = index_combs.shape[0]
