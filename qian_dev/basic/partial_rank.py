@@ -20,16 +20,16 @@ def partial_rank(sa, len_params, conf_level=0.95):
                         which means the parameter of index 2 is in group 0 which is more sensitive than the group 1 
     """
     num_boot = sa.shape[0]
-    print(num_boot)
+    # print(num_boot)
     rankings = np.zeros([num_boot, len_params])
     ranking_ci = np.zeros([2, len_params])
     for resample in range(num_boot):
         rankings[resample,:] = np.argsort(sa[resample,:]).argsort()
-
+    
     ## Generate confidence intervals of rankings based on quantiles (if the num_resample is big enough)
-    # ranking_ci = np.quantile(rankings,[(1-conf_level)/2, 0.5 + conf_level/2], axis=0)
-    rci = norm.ppf(0.5 + conf_level / 2) * rankings.std(ddof=1, axis=0)
-    ranking_ci = [rankings.mean(axis=0) - rci, rankings.mean(axis=0) + rci]
+    ranking_ci = np.quantile(rankings,[(1-conf_level)/2, 0.5 + conf_level/2], axis=0)
+    # rci = norm.ppf(0.5 + conf_level / 2) * rankings.std(ddof=1, axis=0)
+    # ranking_ci = [rankings.mean(axis=0) - rci, rankings.mean(axis=0) + rci]
     # ranking_ci = np.rint(ranking_ci)
     # ranking_ci[ranking_ci<0] = 0        
     conf_low = ranking_ci[0]
