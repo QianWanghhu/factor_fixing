@@ -1,12 +1,11 @@
-# creat all figures
-
+# UTF-8 
 # import packages
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_error_cv(df, save_fig, save_path):
+def plot_error_cv(df, save_fig, save_path, fig_name):
     """
     Parameters:
     ===========
@@ -29,6 +28,6 @@ def plot_error_cv(df, save_fig, save_path):
     plt.xlabel('Sample size', fontsize = 16)
     plt.ylabel('Error (relative RMSE)', fontsize = 16);
     if save_fig:
-        plt.savefig(f'{save_path}error-cv-reduce.png', dpi = 300, format = 'png')
+        plt.savefig(f'{save_path}{fig_name}.png', dpi = 300, format = 'png')
     else:
         plt.show()
