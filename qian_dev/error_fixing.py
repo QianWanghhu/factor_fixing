@@ -12,11 +12,8 @@ from basic.boots_pya import least_squares, fun, pce_fun
 from basic.utils import variables_prep, to_df, cvg_check
 from basic.group_fix import group_fix
 
-reduce_params = True
-if reduce_params:
-    file_list = ['parameter-adjust', 'samples_adjust', 'partial_reduce_beta', 'partial_reduce_params']
-else:
-    file_list = ['parameter-ranges', 'test_qian', 'full_params', 'partial_pya']
+# a list of filenames
+file_list = ['parameter-adjust', 'samples_adjust', 'partial_reduce_beta', 'partial_reduce_params']
 
 input_path = '../data/'
 filename = f'{input_path}{file_list[0]}.csv'
@@ -41,7 +38,6 @@ x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1
 
 # import index_prodcut which is a array defining the correlations between parameters
 index_product = np.load(f'{input_path}index_prodcut.npy', allow_pickle=True)
-
 # if reduce parameters, adapt samples
 if (variable.num_vars()) == 11:
     samples_adjust = np.copy(x_sample)
@@ -59,52 +55,48 @@ if (variable.num_vars()) == 11:
 # load partial order results
 with open(f'{output_path}{file_list[2]}.json', 'r') as fp:
     partial_order = json.load(fp)
-# Get the unique partial sort results and the corresponding number of bootstrap used for PCE
 
-conf_uncond = {}
-error_dict = {}
-pool_res = {}
+# Calculate the corresponding number of bootstrap with use pf group_fix
+# the adaptive process requires PCE to be fitted with increasing sample size
+# therefore the calculation is done without avoiding repeating analysis
+conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
 rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
+
 for key, value in partial_order.items():
     _, sample_size = key.split('_')
     poly, error = pce_fun(variable, samples, values, 
                         ntrain_samples=int(sample_size), degree=2)
     # add the calculation of y_uncond
-    y_uncond_temp = poly(x_sample).flatten()
-    conf_uncond[key] = np.quantile(y_uncond_temp, [0.025, 0.975])
-    conf_uncond[key] = mad(y_uncond_temp) / np.median(y_uncond_temp)
-    error_dict[key], pool_res = group_fix(value, poly, x_sample, y_uncond_temp, x_fix, rand, {}, file_exist=True)
+    y_uncond[key] = poly(x_sample).flatten()
+    conf_uncond[key] = np.quantile(y_uncond[key], [0.025, 0.975])
+    # error_dict[key], pool_res = group_fix(value, poly, x_sample, y_uncond[key], x_fix, rand, {}, file_exist=True)
+# End for
 
-# separate confidence intervals into separate dicts
+# separate confidence intervals into separate dicts and write results
 save_path = f'{output_path}error_measures/'
-os.mkdir(save_path)
+if not os.path.exists(save_path): os.mkdir(save_path)
+# convert the result into dataframe
+key_outer = list(error_dict.keys())
+f_names = list(error_dict[key_outer[0]].keys())
+for ele in f_names:
+    dict_measure = {key: error_dict[key][ele] for key in key_outer}
+    df = to_df(partial_order, dict_measure)
+    df.to_csv(f'{save_path}/{ele}.csv')
 
-if option_return=='conf':
-# if the measure is confidence intervals
-    low_conf, up_conf = {}, {}
-    for k, v in measure2.items():
-        low_conf[k] = {ii:conf[0] for ii, conf in v.items()}
-        up_conf[k] = {ii:conf[1] for ii, conf in v.items()}
-    # convert results in dictionary to 
-    co_var = to_df(partial_order, measure1).round(4)
-    low_conf_df = to_df(partial_order, low_conf).round(4)
-    up_conf_df = to_df(partial_order, up_conf).round(4)
+# calculate the statistics for unconditional model outputs
+key = 'nsample_156'
+y_uncond_stat = {'mean' : y_uncond[key].mean(),
+                'q25': np.quantile(y_uncond[key], [0.25])[0],
+                'q75': np.quantile(y_uncond[key], [0.75])[0]}
+with open(f'{save_path}y_uncond_stats.json', 'w') as fp:
+    json.dump(y_uncond_stat, fp, indent=2)
 
-    # save results
-    co_var.to_csv(f'{save_path}co_var.csv')
-    low_conf_df.to_csv(f'{save_path}low_95.csv')
-    up_conf_df.to_csv(f'{save_path}up_95.csv')
+# calculate width of confidence intervals
+uncond_df = pd.DataFrame.from_dict(conf_uncond)
+width_uncond = (uncond_df.loc[1, :] - uncond_df.loc[0, :]).values
 
-    uncond_df = pd.DataFrame.from_dict(conf_uncond)
-    width_uncond = (uncond_df.loc[1, :] - uncond_df.loc[0, :]).values
-    conf_width_relative = (up_conf_df - low_conf_df).apply(lambda x : x / width_uncond, axis=1)
-    conf_width_relative.to_csv(f'{save_path}conf_width_relative_95.csv')
-else:
-    if option_return == 'ks': fnames_save = ['dvalue', 'pvalue']
-    if option_return == 'median': fnames_save = ['median', 'normalized_median']
-    # convert results in dictionary to 
-    measure1 = to_df(partial_order, measure1).round(4)
-    measure2 = to_df(partial_order, measure2).round(4)
-    # save results
-    measure1.to_csv(f'{save_path}{fnames_save[0]}.csv')
-    measure2.to_csv(f'{save_path}{fnames_save[1]}.csv')
+# import confidence intervals represented as upper and lower bounds
+cf_upper = pd.read_csv(f'{save_path}cf_upper.csv', index_col='Unnamed: 0')
+cf_lower = pd.read_csv(f'{save_path}cf_lower.csv', index_col='Unnamed: 0')
+conf_width_relative = (cf_upper - cf_lower).apply(lambda x : x / width_uncond, axis=1)
+conf_width_relative.to_csv(f'{save_path}conf_width_relative_95.csv')
