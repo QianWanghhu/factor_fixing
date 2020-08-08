@@ -110,11 +110,11 @@ def group_fix(partial_result, func, x, y_true, x_default,
         x_temp = x_default[ind_fix]
         # check whether results existing        
         skip_calcul = results_exist(ind_fix, pool_results)
-        print(skip_calcul)
+        # print(skip_calcul)
 
         if skip_calcul == False:
             x_copy = np.copy(x)
-            x_copy[:, ind_fix] = [x_default]
+            x_copy[ind_fix, :] = x_temp
             results_fix = func(x_copy).flatten()
 
             # compare results with insignificant parameters fixed
@@ -125,10 +125,12 @@ def group_fix(partial_result, func, x, y_true, x_default,
                 I = rand[ii]
                 y_true_resample = y_true[I]
                 results_fix_resample = results_fix[I]
-                [cf_upper_bt[ii], cf_lower_bt[ii]] = np.quantile(results_fix_resample, [0.025, 0.975])
-                ks_bt[i], pvalue_bt[i] = stats.ks_2samp(y_true_resample, results_fix_resample)
+                # cf_temp = 
+                
+                cf_lower_bt[ii], cf_upper_bt[ii] = np.quantile(results_fix_resample, [0.025, 0.975])
+                ks_bt[ii], pvalue_bt[ii] = stats.ks_2samp(y_true_resample, results_fix_resample)
             # End for
-            
+            # import pdb; pdb.set_trace()
             cf_upper[i], cf_lower[i], ks[i], pvalue[i] = cf_upper_bt.mean(), cf_lower_bt.mean(), ks_bt.mean(), pvalue_bt.mean()
             cf_upper_lower[i], cf_upper_upper[i] = np.quantile(cf_upper_bt, [0.025, 0.975])
             cf_lower_lower[i], cf_lower_upper[i] = np.quantile(cf_lower_bt, [0.025, 0.975])
