@@ -1,15 +1,11 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import uniform, norm
+from scipy.stats import uniform
 from SALib.util import read_param_file
 from SALib.sample import saltelli
 from SALib.analyze import sobol
-from SALib.plotting.bar import plot as barplot
-import matplotlib.pyplot as plt
-import seaborn as sns
 import json
-from matplotlib import rc
-from basic.boots_pya import least_squares, fun, pce_fun
+from basic.boots_pya import fun, pce_fun
 from basic.utils import variables_prep, names_match
 from basic.partial_rank import partial_rank
 
@@ -49,7 +45,7 @@ filename = f'{filepath}samples_adjust.csv'
 data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
 samples = data[:,:11].T
 values = data[:,11:]
-values = values[:,:1]# focus on first qoi
+values = values[:,:1]
 ntrain_samples = 156
 poly, error = pce_fun(variable, samples, values, ntrain_samples, degree=2)
 
@@ -78,10 +74,10 @@ sa_df = pd.DataFrame.from_dict(sa)
 sa_df.index = problem_adjust['names']
 fpath_save = '../output/paper/'
 
-# save results
+# save results of partial rankings for parameter index and names
 sa_df.to_csv(f'{fpath_save}sa_samples_product.csv', index=True)
 with  open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
-    json.dump(rankings, fp, indent=2)    
+    json.dump(rankings, fp, indent=2)
 
-with  open(f'{fpath_save}ranking_samplin_name.json', 'w') as fp:
+with  open(f'{fpath_save}ranking_sampling_name.json', 'w') as fp:
     json.dump(rank_names, fp, indent=2)    
