@@ -92,4 +92,3 @@ for ii in range(len(names_update)):
             (df_plot.Type=='Sampling')].index, 'short_name'] = new_short_name[ii]
 
 df_plot.to_csv(f'{fpath_save}/sa_fig1.csv')
-
