@@ -121,3 +121,17 @@ def variables_prep(filename, product_uniform=False):
         variable_adjust = pya.IndependentMultivariateRandomVariable(univariate_variables)
         return variable_adjust
         # End for()
+
+def adjust_sampling(x_sample, index_product, x_fix, ):
+    samples_adjust = np.copy(x_sample)
+    pars_delete = []
+    for ii in range(list(index_product.shape)[0]):
+        index_temp = index_product[ii]
+        samples_adjust[index_temp[0], :] = np.prod(samples_adjust[index_temp, :], axis=0)
+        x_fix[index_temp[0]] = np.prod(x_fix[index_temp], axis=0)
+        # samples_adjust[index_temp[1:], :] = 1
+        pars_delete.extend(index_temp[1:])
+    samples_adjust = np.delete(samples_adjust, pars_delete, axis=0)
+    x_fix = np.delete(x_fix, pars_delete, axis=0)
+    x_sample = samples_adjust
+    return x_sample
