@@ -27,14 +27,14 @@ def pya_boot_sensitivity(product_uniform=True):
     values = data[:,len_params:]
 
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_setp = [78, 235, 13]
+    n_strat, n_end, n_setp = [78, 552, 13]
     # loops of fun
     errors_cv_all = {}
     # errors_bt_all = {}
     partial_results = {}
     for i in range(n_strat, n_end+1, n_setp):
         print(i)
-        errors_cv, main_effects, total_effects = fun(variable, samples, 
+        errors_cv, _, total_effects = fun(variable, samples, 
                                                     values, degree=2, 
                                                     nboot=1000, ntrain_samples=i)
         # partial ranking
@@ -52,7 +52,7 @@ def pya_boot_sensitivity(product_uniform=True):
         dist_type = 'beta'
     else:
         dist_type = 'uniform'
-    filename = f'adaptive-reduce-{dist_type}.npz'
+    filename = f'adaptive-reduce-{dist_type}_552.npz'
     np.savez(f'{filepath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results)
 
 
@@ -62,7 +62,7 @@ def main(product_uniform=True):
         dist_type = 'beta'
     else:
         dist_type = 'uniform'
-    filename = f'adaptive-reduce-{dist_type}.npz'
+    filename = f'adaptive-reduce-{dist_type}_552.npz'
 
     if not os.path.exists(f'{filepath}{filename}'):
         pya_boot_sensitivity(product_uniform)
