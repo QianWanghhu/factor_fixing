@@ -4,9 +4,6 @@ import pyapprox as pya
 from scipy.stats import uniform
 import json
 import os
-import matplotlib.pyplot as plt
-import seaborn as sns
-# define the distribution of the first parameter
 from pyapprox.random_variable_algebra import product_of_independent_random_variables_pdf
 
 from basic.boots_pya import least_squares, fun
@@ -36,7 +33,7 @@ def pya_boot_sensitivity(product_uniform=True):
         print(i)
         errors_cv, _, total_effects = fun(variable, samples, 
                                                     values, degree=2, 
-                                                    nboot=1000, ntrain_samples=i)
+                                                    nboot=500, ntrain_samples=i)
         # partial ranking
         total_effects = np.array(total_effects)
         sa_shape = list(total_effects.shape)[0:2]
@@ -77,8 +74,8 @@ def main(product_uniform=True):
     error_stats['std'] = np.round(errors_cv.std(axis=0), 4)
     error_stats.index.name = 'index'
 
-    error_stats.to_csv(f'{filepath}error_cv_{dist_type}.csv')
-    with open(f'{filepath}partial_reduce_{dist_type}.json', 'w') as fp:
+    error_stats.to_csv(f'{filepath}error_cv_{dist_type}_552.csv')
+    with open(f'{filepath}partial_reduce_{dist_type}_552.json', 'w') as fp:
         json.dump(sensitivity_indices, fp, indent=2)
     
 if __name__ == "__main__":
