@@ -38,7 +38,7 @@ def samples_df(sample_method = 'samples_product', Nsamples = 2000):
 # expand the samples with other parameters fixed
 input_path = '../data/'
 filename = f'{input_path}parameter-adjust.csv'
-variable = variables_prep(filename, product_uniform=True)
+variable = variables_prep(filename, product_uniform=False)
 
 filepath = '../output/paper/'
 filename = f'{filepath}samples_adjust.csv'
@@ -47,36 +47,45 @@ samples = data[:,:11].T
 values = data[:,11:]
 values = values[:,:1]
 ntrain_samples = 156
-poly, error = pce_fun(variable, samples, values, ntrain_samples, degree=2)
 
 # with adjustment to parameter ranges
-index_product = np.load(f'{input_path}index_prodcut.npy', allow_pickle=True)
-
+index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
 # import problem for SALib
 problem = read_param_file(f'{input_path}problem.txt', delimiter=',')
 filename = f'{input_path}problem_adjust.txt'
 problem_adjust = read_param_file(filename, delimiter=',')
 rankings, rank_names = {}, {}
 
-for n in range(200, 1001, 100):
+nboot = 500
+rand = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples))
+for n in range(200, 800, 100):
     print(n)
     df = samples_df(sample_method='samples_product', Nsamples = n)
-    y_range_change = np.round(poly(df.T), 4).reshape(list(df.shape)[0])
-    sa, main_resample, total_resample = sobol.analyze(problem_adjust, 
+    for ii in range(nboot):
+        poly, error = pce_fun(variable, samples, values, 
+                            ntrain_samples, degree=2, boot_ind=rand[ii])
+        y_range_change = np.round(poly(df.T), 4).reshape(list(df.shape)[0])
+        sa, main_resample, total_resample = sobol.analyze(problem_adjust, 
                                         y_range_change, calc_second_order=False, 
                                         num_resamples=500, conf_level=0.95)
-
-    rankings[f'nsample_{n}'] = partial_rank(total_resample.T, problem_adjust['num_vars'])
+        try:
+            total_indices = np.append(total_indices, total_resample, axis=1)
+        except NameError:
+            total_indices = total_resample[:]                                 
+    rankings[f'nsample_{n}'] = partial_rank(total_indices.T, problem_adjust['num_vars'])
     rank_names[f'nsample_{n}'] = names_match(rankings[f'nsample_{n}'], problem_adjust['names'])
+    # End For
+# End For
 
-sa = {key: value for key, value in sa.items() if 'ci' not in key}
-sa_df = pd.DataFrame.from_dict(sa)
-sa_df.index = problem_adjust['names']
+sa_df = pd.DataFrame(data = [total_indices.mean(axis=1), *np.quantile(total_indices, [0.025, 0.975], axis=1)],
+                index=['ST', 'ST_conf_lower', 'ST_conf_upper'], columns=problem_adjust['names']).T
+
 fpath_save = '../output/paper/'
 
 # save results of partial rankings for parameter index and names
-sa_df.to_csv(f'{fpath_save}sa_samples_product.csv', index=True)
-with  open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
+sa_df.to_csv(f'{fpath_save}sa_samples_product_test.csv', index=True)
+
+with open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
     json.dump(rankings, fp, indent=2)
 
 with  open(f'{fpath_save}ranking_sampling_name.json', 'w') as fp:
