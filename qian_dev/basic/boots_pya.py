@@ -81,18 +81,6 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
     errors_cv, main_sensitivity, total_indices = [], [], []
     # Cross-validation
     kf = KFold(n_splits=10)
-    x_cv = samples[:,:ntrain_samples]
-    y_cv = values[:ntrain_samples]
-    start_validation = ntrain_samples
-    
-    for train_index, test_index in kf.split(x_cv.T):
-        x_train, x_test = x_cv[:,train_index], x_cv[:,test_index]
-        y_train, y_test = y_cv[train_index], y_cv[test_index]
-        coef = least_squares(poly.basis_matrix,x_train,y_train)
-        poly.set_coefficients(coef)
-        approx_values = poly(x_test)
-        cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(y_test)
-        errors_cv.append(cv)
 
     for _ in range(nboot):
         I = np.random.randint(0, ntrain_samples, ntrain_samples)
@@ -100,6 +88,21 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
 
         train_samples = samples[:,I]
         train_values = values[I]
+        x_cv = train_samples
+        y_cv = train_values
+
+        # start_validation = ntrain_samples
+        
+        for train_index, test_index in kf.split(x_cv.T):
+            x_train, x_test = x_cv[:,train_index], x_cv[:,test_index]
+            y_train, y_test = y_cv[train_index], y_cv[test_index]
+            coef = least_squares(poly.basis_matrix,x_train,y_train)
+            poly.set_coefficients(coef)
+            approx_values = poly(x_test)
+            cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(y_test)
+            errors_cv.append(cv)
+
+
         coef = least_squares(poly.basis_matrix,train_samples,train_values)
         poly.set_coefficients(coef)
 
