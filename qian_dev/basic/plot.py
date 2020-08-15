@@ -23,7 +23,8 @@ def plot_error_cv(df, save_fig, save_path, fig_name):
     sns.set_style('darkgrid')
     _ = plt.figure(figsize = (8, 6))
     plt.errorbar(np.arange(df.shape[0]), df['mean'], df['std'], linestyle ='None', marker = 'd');
-    plt.xticks(ticks = np.arange(16), labels = labels, fontsize = 14);
+    plt.yscale('log')
+    plt.xticks(ticks = np.arange(df.shape[0]), labels = labels, fontsize = 14, rotation=90);
     plt.yticks(fontsize = 14)
     plt.xlabel('Sample size', fontsize = 16)
     plt.ylabel('Error (relative RMSE)', fontsize = 16);
