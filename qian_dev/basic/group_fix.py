@@ -124,9 +124,7 @@ def group_fix(partial_result, func, x, y_true, x_default,
             for ii in range(Nresample):            
                 I = rand[ii]
                 y_true_resample = y_true[I]
-                results_fix_resample = results_fix[I]
-                # cf_temp = 
-                
+                results_fix_resample = results_fix[I]                
                 cf_lower_bt[ii], cf_upper_bt[ii] = np.quantile(results_fix_resample, [0.025, 0.975])
                 ks_bt[ii], pvalue_bt[ii] = stats.ks_2samp(y_true_resample, results_fix_resample)
             # End for
