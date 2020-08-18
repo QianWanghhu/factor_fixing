@@ -1,0 +1,30 @@
+name: approxi
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - astroid=2.3.3=py37_1
+  - ca-certificates=2019.11.28=hecc5488_0
+  - certifi=2019.11.28=py37hc8dfbb8_1
+  - colorama=0.4.3=py_0
+  - isort=4.3.21=py37_0
+  - lazy-object-proxy=1.4.3=py37hfa6e2cd_1
+  - mccabe=0.6.1=py_1
+  - openssl=1.1.1f=hfa6e2cd_0
+  - pip=20.0.2=py_2
+  - pylint=2.4.4=py37_0
+  - python=3.7.6=h5b45d93_2
+  - python_abi=3.7=1_cp37m
+  - pywin32=227=py37hfa6e2cd_0
+  - setuptools=45.2.0=py37_0
+  - six=1.14.0=py37_0
+  - sqlite=3.30.1=hfa6e2cd_0
+  - tqdm=4.44.1=pyh9f0ad1d_0
+  - typed-ast=1.4.1=py37hfa6e2cd_0
+  - vc=14.1=h0510ff6_4
+  - vs2015_runtime=14.16.27012=hf0eaf9b_1
+  - wheel=0.34.2=py_1
+  - wincertstore=0.2=py37_1003
+  - wrapt=1.12.0=py37hfa6e2cd_0
+prefix: F:\Anaconda3\envs\approxi
+
