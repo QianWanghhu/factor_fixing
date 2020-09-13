@@ -4,12 +4,14 @@ import pyapprox as pya
 from scipy.stats import uniform
 import json
 import os
+import time
 from pyapprox.random_variable_algebra import product_of_independent_random_variables_pdf
 
 from basic.boots_pya import least_squares, fun
 from basic.partial_rank import partial_rank
 from basic.utils import variables_prep
 
+start_time = time.time()
 # import the original parameter sets
 def pya_boot_sensitivity(product_uniform=True):
     file_input = 'data/'
@@ -80,3 +82,5 @@ def main(product_uniform=True):
     
 if __name__ == "__main__":
     main(product_uniform=False)
+
+print("--- %s seconds ---" % (time.time() - start_time))
