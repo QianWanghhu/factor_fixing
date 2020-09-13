@@ -7,15 +7,17 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rc
+import time
 rc("text", usetex=False)
 
 from basic.utils import variables_prep
 
+start_time = time.time()
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-filepath = 'data/'
+filepath = '../data/'
 filename = f'{filepath}parameter-reimplement.csv'
 variable = variables_prep(filename, product_uniform=False)
-index_product = np.load(f'{input_path}index_prodcut.npy', allow_pickle=True)
+index_product = np.load(f'{filepath}index_product.npy', allow_pickle=True)
 
 # Check whether the Beta distribution is a proper option
 filename = f'{filepath}parameter-adjust.csv'
@@ -52,7 +54,7 @@ for ii in range(list(index_product.shape)[0]):
 # End for
 # plot CDFs of the fitted Beta distribution and samples
 
-filepath_save = 'D:/cloudStor/Research/pce_fixing/output/linear_dep/'
+filepath_save = '../output/paper/beta_validate/'
 def plot_dists(beta_aguments, rv_product, ii):
     x = np.sort(rv_product)
     def ecdf(x):
@@ -73,4 +75,6 @@ for ii in range(list(index_product.shape)[0]):
     beta_aguments = beta_fit[ii]
     parameter = param_names[ii]
     plot_dists(beta_aguments, rv_product, ii)
-plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
+# plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
+
+print("--- %s seconds ---" % (time.time() - start_time))
