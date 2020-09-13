@@ -64,7 +64,7 @@ for key, value in partial_order.items():
 # End for
 
 # # separate confidence intervals into separate dicts and write results
-save_path = f'{output_path}error_measures/'
+save_path = f'{output_path}error_measures/0913/'
 if not os.path.exists(save_path): os.mkdir(save_path)
 # # convert the result into dataframe
 key_outer = list(error_dict.keys())
