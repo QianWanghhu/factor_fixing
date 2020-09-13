@@ -5,10 +5,12 @@ from SALib.util import read_param_file
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 import json
+import time
 from basic.boots_pya import fun, pce_fun
 from basic.utils import variables_prep, names_match
 from basic.partial_rank import partial_rank
 
+start_time = time.time()
 def samples_df(sample_method = 'samples_product', Nsamples = 2000):
     def samples_product(Nsamples=Nsamples):
         sample_new = np.round(saltelli.sample(problem, 
@@ -58,7 +60,7 @@ rankings, rank_names = {}, {}
 
 nboot = 500
 rand = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples))
-for n in range(200, 800, 100):
+for n in range(600, 601, 100):
     print(n)
     df = samples_df(sample_method='samples_product', Nsamples = n)
     for ii in range(nboot):
@@ -83,10 +85,12 @@ sa_df = pd.DataFrame(data = [total_indices.mean(axis=1), *np.quantile(total_indi
 fpath_save = '../output/paper/'
 
 # save results of partial rankings for parameter index and names
-sa_df.to_csv(f'{fpath_save}sa_samples_product_test.csv', index=True)
+# sa_df.to_csv(f'{fpath_save}sa_samples_product_test.csv', index=True)
 
-with open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
-    json.dump(rankings, fp, indent=2)
+# with open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
+#     json.dump(rankings, fp, indent=2)
 
-with  open(f'{fpath_save}ranking_sampling_name.json', 'w') as fp:
-    json.dump(rank_names, fp, indent=2)    
+# with  open(f'{fpath_save}ranking_sampling_name.json', 'w') as fp:
+#     json.dump(rank_names, fp, indent=2)    
+
+print("--- %s seconds ---" % (time.time() - start_time))
