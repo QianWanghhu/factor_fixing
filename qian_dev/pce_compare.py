@@ -22,7 +22,7 @@ def df_format(total_effects, variables, param_names, conf_level=0.95):
 # End df_format()
 
 def main():
-    fpath_save = 'output/paper/'
+    fpath_save = 'output/paper0915/'
     filename = f'{fpath_save}2000_2014_ave_annual.csv'
     data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
     samples = data[:, :22].T
@@ -30,7 +30,7 @@ def main():
 
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     fpath_input = 'data/'
-    filename = f'{fpath_input}parameter-reimplement.csv'
+    filename = f'{fpath_input}parameter-implement.csv'
     variable = variables_prep(filename, product_uniform=False)
     param_all = pd.read_csv(filename).loc[:, 'Veneer_name'].values
 
@@ -39,8 +39,7 @@ def main():
     nboot = 500
     error_cv, _, total_effects = fun(variable, samples, 
                                                 values, degree=2, nboot=nboot, 
-                                                ntrain_samples=ntrain_samples)
-    # import pdb; pdb.set_trace()                                                
+                                                ntrain_samples=ntrain_samples)                                          
     sa_df = df_format(total_effects, variable, 
                     param_all, conf_level=0.95)
     sa_df.to_csv(f'{fpath_save}sa_pce_raw_test.csv', index=True)
@@ -66,7 +65,7 @@ def main():
         if ntrain == 156:
             sa_df = df_format(total_effects, variable_uniform, 
                     param_reduce, conf_level=0.95)
-            sa_df.to_csv(f'{fpath_save}sa_pce_uniform_test.csv', index=True)
+            sa_df.to_csv(f'{fpath_save}sa_pce_uniform.csv', index=True)
 
     for ntrain in [156]:
         error_cv_beta, main_effects, total_effects = fun(variable_beta, samples_adjust, 
@@ -76,12 +75,14 @@ def main():
         if ntrain == 156:
             sa_df = df_format(total_effects, variable_beta, 
                     param_reduce, conf_level=0.95)
-            sa_df.to_csv(f'{fpath_save}sa_pce_beta_test.csv', index=True)
+            sa_df.to_csv(f'{fpath_save}sa_pce_beta.csv', index=True)
 
     error_cv_mean = error_cv_df.apply(np.mean, axis=0)
-    error_cv_std = error_cv_df.apply(np.std, axis=0)
-    error_stats_df = pd.DataFrame(data=[error_cv_mean, error_cv_std], 
-                    index=['mean', 'std']).T
+    # error_cv_std = error_cv_df.apply(np.std, axis=0)
+    error_cv_lower = np.round(error_cv_df.quantile(0.025, axis=0), 4)
+    error_cv_upper= np.round(error_cv_df.quantile(0.975, axis=0), 4)
+    error_stats_df = pd.DataFrame(data=[error_cv_mean, error_cv_lower, error_cv_upper], 
+                    index=['mean', 'lower', 'upper']).T
     error_stats_df.index = error_cv_df.columns
     # error_stats_df.to_csv(f'{fpath_save}error_cv_compare.csv', index=True)
 
