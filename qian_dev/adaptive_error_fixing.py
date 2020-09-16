@@ -1,3 +1,4 @@
+# import packages
 import numpy as np
 import pandas as pd
 import json
@@ -50,7 +51,7 @@ poly, error = pce_fun(variable, samples, values,
                     ntrain_samples=int(sample_size), degree=2)
 
 nstart, nstop, nstep = 1000, 10000, 500
-conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
+conf_uncond, error_dict, pool_res, y_uncond = {'median': [], 'mean': []}, {}, {}, {}
 for n in range(nstart, nstop + 1, nstep):
     print(n)
     x_sample = latin.sample(problem, n, seed=88)
@@ -66,12 +67,13 @@ for n in range(nstart, nstop + 1, nstep):
     rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
     # add the calculation of y_uncond
     y_uncond[str(n)] = poly(x_sample).flatten()
-    conf_uncond[str(n)]  = np.median(y_uncond[str(n)])       
-    error_dict[str(n)], pool_res = group_fix(value, poly, x_sample, y_uncond[str(n)], 
-                                    x_fix_adjust, rand, {}, file_exist=True)
-    # End for
+    conf_uncond['median'].append(np.quantile(y_uncond[str(n)][rand], [0.025, 0.975], axis=1).mean(axis=0).mean())
+    conf_uncond['mean'].append(poly.mean()[0])
 
-    
+    # error_dict[str(n)], pool_res = group_fix(value, poly, x_sample, y_uncond[str(n)], 
+    #                                 x_fix_adjust, rand, {}, file_exist=True)
+    # # End for
+
 # separate confidence intervals into separate dicts and write results
 save_path = f'{output_path}error_measures/'
 if not os.path.exists(save_path): os.mkdir(save_path)
@@ -83,5 +85,6 @@ for ele in f_names:
     df = pd.DataFrame.from_dict(dict_measure)
     df.to_csv(f'{save_path}/{ele}_adaptive.csv')
 
-df_medain = pd.Series(conf_uncond).to_frame('median').T
-df_medain.to_csv(f'{save_path}/median_uncond_adaptive.csv')
+
+df_stats = pd.DataFrame(data=conf_uncond, index=np.arange(nstart, nstop + 1, nstep))
+df_stats.to_csv(f'{save_path}/stats_uncond_adaptive.csv')
