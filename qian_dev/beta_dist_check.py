@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib import rc
 import time
+import os
 rc("text", usetex=False)
 
 from basic.utils import variables_prep
@@ -15,7 +16,7 @@ from basic.utils import variables_prep
 start_time = time.time()
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
 filepath = '../data/'
-filename = f'{filepath}parameter-reimplement.csv'
+filename = f'{filepath}parameter-implement.csv'
 variable = variables_prep(filename, product_uniform=False)
 index_product = np.load(f'{filepath}index_product.npy', allow_pickle=True)
 
@@ -24,6 +25,7 @@ filename = f'{filepath}parameter-adjust.csv'
 param_adjust = pd.read_csv(filename)
 beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
             index.to_list()
+# prepare the loc and scale argument for Beta fit
 locs = np.array(param_adjust.loc[beta_index, ['min','max']])
 locs[:, 1] = locs[:, 1] - locs[:, 0]
 param_names = param_adjust.loc[beta_index, 'Veneer_name'].values
@@ -54,7 +56,8 @@ for ii in range(list(index_product.shape)[0]):
 # End for
 # plot CDFs of the fitted Beta distribution and samples
 
-filepath_save = '../output/paper/beta_validate/'
+filepath_save = '../output/paper0915/beta_validate/'
+if not os.path.exists(filepath_save): os.mkdir(filepath_save)
 def plot_dists(beta_aguments, rv_product, ii):
     x = np.sort(rv_product)
     def ecdf(x):
@@ -75,6 +78,6 @@ for ii in range(list(index_product.shape)[0]):
     beta_aguments = beta_fit[ii]
     parameter = param_names[ii]
     plot_dists(beta_aguments, rv_product, ii)
-# plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
+plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
 
 print("--- %s seconds ---" % (time.time() - start_time))
