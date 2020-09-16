@@ -18,7 +18,7 @@ def pya_boot_sensitivity(product_uniform=True):
     filename = f'{file_input}parameter-adjust.csv'
     variable = variables_prep(filename, product_uniform)
 
-    file_sample = 'output/paper/'
+    file_sample = 'output/paper0915/'
     filename = f'{file_sample}samples_adjust.csv'
     data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
     len_params = variable.num_vars()
@@ -26,7 +26,7 @@ def pya_boot_sensitivity(product_uniform=True):
     values = data[:,len_params:]
 
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_setp = [78, 552, 13]
+    n_strat, n_end, n_setp = [104, 391, 13]
     # loops of fun
     errors_cv_all = {}
     # errors_bt_all = {}
@@ -46,7 +46,7 @@ def pya_boot_sensitivity(product_uniform=True):
         # errors_bt_all[f'nsample_{i}'] = errors_bt
     # End for
 
-    filepath = 'output/paper/'
+    filepath = 'output/paper0915/'
     if product_uniform == True:
         dist_type = 'beta'
     else:
@@ -56,7 +56,7 @@ def pya_boot_sensitivity(product_uniform=True):
 
 
 def main(product_uniform=True):
-    filepath = 'output/paper/'
+    filepath = 'output/paper0915/'
     if product_uniform == True:
         dist_type = 'beta'
     else:
@@ -69,11 +69,13 @@ def main(product_uniform=True):
     fileread = np.load(f'{filepath}{filename}', allow_pickle=True)
     errors_cv = fileread[fileread.files[0]][()]
     sensitivity_indices = fileread[fileread.files[1]][()]
+    import pdb; pdb.set_trace()
     # Look the error change with the increase of sample size
     errors_cv = pd.DataFrame.from_dict(errors_cv)
     error_stats = pd.DataFrame()
     error_stats['mean'] = np.round(errors_cv.mean(axis=0), 4)
-    error_stats['std'] = np.round(errors_cv.std(axis=0), 4)
+    error_stats['error_lower'] = np.round(np.quantile(errors_cv, 0.025, axis=0), 4)
+    error_stats['error_upper'] = np.round(np.quantile(errors_cv, 0.975, axis=0), 4)
     error_stats.index.name = 'index'
 
     error_stats.to_csv(f'{filepath}error_cv_{dist_type}_552.csv')
