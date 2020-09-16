@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def plot_error_cv(df, save_fig, save_path, fig_name):
+def plot_error_cv(df, save_fig, save_path, fig_name, log_scale):
     """
     Parameters:
     ===========
@@ -22,8 +22,10 @@ def plot_error_cv(df, save_fig, save_path, fig_name):
     labels = [i.split('_')[1] for i in index_temp]
     sns.set_style('darkgrid')
     _ = plt.figure(figsize = (8, 6))
-    plt.errorbar(np.arange(df.shape[0]), df['mean'], df['std'], linestyle ='None', marker = 'd');
-    plt.yscale('log')
+    cols = df.columns
+    # plt.errorbar(np.arange(df.shape[0]), df['mean'], df['std'], linestyle ='None', marker = 'd');
+    plt.errorbar(np.arange(df.shape[0]), df['mean'], yerr = df.loc[:, cols[1:]].T.values, linestyle ='None', marker = 'd');
+    if log_scale == True: plt.yscale('log')
     plt.xticks(ticks = np.arange(df.shape[0]), labels = labels, fontsize = 14, rotation=90);
     plt.yticks(fontsize = 14)
     plt.xlabel('Sample size', fontsize = 16)
