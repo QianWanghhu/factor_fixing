@@ -84,7 +84,7 @@ def main():
     error_stats_df = pd.DataFrame(data=[error_cv_mean, error_cv_lower, error_cv_upper], 
                     index=['mean', 'lower', 'upper']).T
     error_stats_df.index = error_cv_df.columns
-    # error_stats_df.to_csv(f'{fpath_save}error_cv_compare.csv', index=True)
+    error_stats_df.to_csv(f'{fpath_save}error_cv_compare.csv', index=True)
 
 if __name__ == "__main__":
     main()
