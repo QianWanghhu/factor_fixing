@@ -6,7 +6,7 @@ import json
 # sensitivity plot
 def short_name(df):
     fp = '../data/'
-    name_df = pd.read_csv(f'{fp}parameter-reimplement.csv')
+    name_df = pd.read_csv(f'{fp}parameter-implement.csv')
     df['short_name'] = None
     for ii in range(df.shape[0]):
         df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values 
@@ -22,8 +22,8 @@ def df_read(fpath, fname, result_type, type_num):
 # End df_read()
 
 # clean the dataframe ordered by the sampling-based sensitivity indices
-fpath_save = '../output/paper/'
-filename = ['sa_samples_product_test', 'sa_pce_uniform_test', 'sa_pce_beta_test']
+fpath_save = '../output/paper0915/'
+filename = ['sa_samples_product', 'sa_pce_uniform', 'sa_pce_beta']
 df_raw = df_read(fpath_save, f'{filename[1]}.csv', 'PCE-Uniform', 2)
 df_sampling = df_read(fpath_save, f'{filename[0]}.csv', 'Sampling', 0)
 df_sampling = df_sampling.sort_values(by='ST', ascending=False)
@@ -55,12 +55,12 @@ df_plot['ST_Uniform'], df_plot['ST_Uniform_conf_lower'], df_plot['ST_Uniform_con
 
 df_plot = short_name(df_plot)
 names_update = ['bankErosionCoeff', 'HillslopeFineSDR', 'Gully_Management_Practice_Factor']
-new_short_name = ['new_BEC', 'new_HFSDR', 'new_GMPF']
+new_short_name = ['BEC-R', 'HFSDR-R', 'GMPF-R']
 for ii in range(len(names_update)):
     df_plot.loc[df_plot[df_plot.Parameters==names_update[ii]].index, 'short_name'] = new_short_name[ii]
 
 # save df_plot
-df_plot.to_csv(f'{fpath_save}/sa_fig2_0812.csv')
+df_plot.to_csv(f'{fpath_save}/sa_fig2.csv')
 
 
 # clean the dataframe ordered by the sampling-based sensitivity indices
@@ -84,7 +84,7 @@ df_plot = df_plot.sort_values(by=['Model_group', 'Type_num', 'ST'], ascending=[T
 df_plot = short_name(df_plot)
 
 names_update = ['bankErosionCoeff', 'HillslopeFineSDR', 'Gully_Management_Practice_Factor']
-new_short_name = ['new_BEC', 'new_HFSDR', 'new_GMPF']
+new_short_name = ['BEC-R', 'HFSDR-R', 'GMPF-R']
 for ii in range(len(names_update)):
     df_plot.loc[df_plot[(df_plot.Parameters==names_update[ii]) & 
             (df_plot.Type=='Sampling')].index, 'short_name'] = new_short_name[ii]
