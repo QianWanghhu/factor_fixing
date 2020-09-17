@@ -42,7 +42,7 @@ input_path = '../data/'
 filename = f'{input_path}parameter-adjust.csv'
 variable = variables_prep(filename, product_uniform=False)
 
-filepath = '../output/paper/'
+filepath = '../output/paper0915/'
 filename = f'{filepath}samples_adjust.csv'
 data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
 samples = data[:,:11].T
@@ -60,7 +60,7 @@ rankings, rank_names = {}, {}
 
 nboot = 500
 rand = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples))
-for n in range(600, 601, 100):
+for n in range(600, 1001, 100):
     print(n)
     df = samples_df(sample_method='samples_product', Nsamples = n)
     for ii in range(nboot):
@@ -82,10 +82,10 @@ for n in range(600, 601, 100):
 sa_df = pd.DataFrame(data = [total_indices.mean(axis=1), *np.quantile(total_indices, [0.025, 0.975], axis=1)],
                 index=['ST', 'ST_conf_lower', 'ST_conf_upper'], columns=problem_adjust['names']).T
 
-fpath_save = '../output/paper/'
+fpath_save = '../output/paper0915/'
 
 # save results of partial rankings for parameter index and names
-# sa_df.to_csv(f'{fpath_save}sa_samples_product_test.csv', index=True)
+sa_df.to_csv(f'{fpath_save}sa_samples_product.csv', index=True)
 
 # with open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
 #     json.dump(rankings, fp, indent=2)
