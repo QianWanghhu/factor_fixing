@@ -12,11 +12,12 @@ from SALib.util import read_param_file
 
 # read model results
 def samples_combine():
-    filepath = 'output/Run0730/'
+    filepath = 'output/Run0915/'
     # combine TSS results into a file
     filenames = os.listdir(filepath)
     for fn in filenames:
         if 'Tss' in fn:
+            print(fn)
             tss_temp = pd.read_csv(f'{filepath}{fn}', index_col='# Date')
             tss_temp.index = pd.to_datetime(tss_temp.index)
             tss_temp = tss_temp.loc['2000-07-01':'2014-06-30',:]
@@ -24,25 +25,28 @@ def samples_combine():
             try:
                 f_quantile = np.hstack((f_quantile, tss_temp.sum(axis = 0).values / 14))
             except NameError:
-                f_quantile = tss_temp.sum(axis = 0).values / 14
+                f_quantile = tss_temp.sum(axis = 0).values / 14                
     file_sample = [fn for fn in filenames if 'sample' in fn]
+    print(filenames)
     f_train = pd.read_csv(f'{filepath}{file_sample[0]}', index_col= 'index')
     f_train.loc[:, 'ave_annual'] = f_quantile
     f_train.to_csv(f'{filepath}2000_2014_ave_annual.csv', index_label='id')
 
 def main():    
-    samples_combine()
-    # import samples and values
-    fpath_save = 'output/paper/'
-    fpath = 'output/Run0730/'
+    fpath_save = 'output/paper0915/'
+    fpath = 'output/Run0915/'
     filename = f'{fpath}2000_2014_ave_annual.csv'
+    # import samples and values
+    if not os.path.exists(filename):
+        samples_combine()
+        
     data = np.loadtxt(filename,delimiter=",",skiprows=1)[:,1:]
     samples = data[:,:22].T
     values = data[:,22:]
 
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     fpath_input = 'data/'
-    filename = f'{fpath_input}parameter-reimplement.csv'
+    filename = f'{fpath_input}parameter-implement.csv'
     index_product = np.array([[1, 0, 2, 3, 9, 10, 11, 16, 17], 
                             [6, 5, 7], 
                             [19, 20],
@@ -62,6 +66,7 @@ def main():
         samples_adjust[index_temp[0], :] = np.prod(samples_adjust[index_temp, :], axis=0)
         # samples_adjust[index_temp[1:], :] = 1
         pars_delete.extend(index_temp[1:])
+    import pdb; pdb.set_trace()
     samples_adjust = np.delete(samples_adjust, pars_delete, axis=0)
 
     samples_adjust = np.append(samples_adjust, [values.flatten()], axis=0)    
