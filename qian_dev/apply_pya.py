@@ -69,7 +69,6 @@ def main(product_uniform=True):
     fileread = np.load(f'{filepath}{filename}', allow_pickle=True)
     errors_cv = fileread[fileread.files[0]][()]
     sensitivity_indices = fileread[fileread.files[1]][()]
-    import pdb; pdb.set_trace()
     # Look the error change with the increase of sample size
     errors_cv = pd.DataFrame.from_dict(errors_cv)
     error_stats = pd.DataFrame()
