@@ -26,14 +26,17 @@ def pya_boot_sensitivity(product_uniform=True):
     values = data[:,len_params:]
 
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_setp = [104, 391, 13]
+    # n_strat, n_end, n_setp = [104, 553, 13]
+    n_list = [130, 156, 234, 312, 390, 552]
     # loops of fun
     errors_cv_all = {}
     # errors_bt_all = {}
     partial_results = {}
-    for i in range(n_strat, n_end+1, n_setp):
+    index_cover_all = {}
+    # for i in range(n_strat, n_end+1, n_setp):
+    for i in n_list:
         print(i)
-        errors_cv, _, total_effects = fun(variable, samples, 
+        errors_cv, _, total_effects, index_cover = fun(variable, samples, 
                                                     values, degree=2, 
                                                     nboot=500, ntrain_samples=i)
         # partial ranking
@@ -43,20 +46,22 @@ def pya_boot_sensitivity(product_uniform=True):
         rankings = partial_rank(total_effects,len_params, conf_level=0.95)
         partial_results[f'nsample_{i}'] = rankings
         errors_cv_all[f'nsample_{i}'] = errors_cv
+        index_cover_all[f'nsample_{i}'] = index_cover
         # errors_bt_all[f'nsample_{i}'] = errors_bt
+
     # End for
 
-    filepath = 'output/paper0915/'
+    filepath = 'output/paper0915/figure4/test_plot/'
     if product_uniform == True:
         dist_type = 'beta'
     else:
         dist_type = 'uniform'
     filename = f'adaptive-reduce-{dist_type}_552.npz'
-    np.savez(f'{filepath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results)
+    np.savez(f'{filepath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, index_cover = index_cover_all)
 
 
 def main(product_uniform=True):
-    filepath = 'output/paper0915/'
+    filepath = 'output/paper0915/figure4/test_plot/'
     if product_uniform == True:
         dist_type = 'beta'
     else:
@@ -69,6 +74,7 @@ def main(product_uniform=True):
     fileread = np.load(f'{filepath}{filename}', allow_pickle=True)
     errors_cv = fileread[fileread.files[0]][()]
     sensitivity_indices = fileread[fileread.files[1]][()]
+    index_cover = fileread[fileread.files[2]][()]
     # Look the error change with the increase of sample size
     errors_cv = pd.DataFrame.from_dict(errors_cv)
     error_stats = pd.DataFrame()
@@ -80,6 +86,8 @@ def main(product_uniform=True):
     error_stats.to_csv(f'{filepath}error_cv_{dist_type}_552.csv')
     with open(f'{filepath}partial_reduce_{dist_type}_552.json', 'w') as fp:
         json.dump(sensitivity_indices, fp, indent=2)
+    with open(f'{filepath}index_cover.json', 'w') as fp:
+        json.dump(index_cover, fp, indent=2)
     
 if __name__ == "__main__":
     main(product_uniform=False)
