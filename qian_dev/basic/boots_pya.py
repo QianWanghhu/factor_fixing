@@ -79,12 +79,14 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
         ntrain_samples = poly.get_indices().shape[1]*3
 
     errors_cv, main_sensitivity, total_indices = [], [], []
+    index_cover = []
     # Cross-validation
     kf = KFold(n_splits=10)
 
     for _ in range(nboot):
         I = np.random.randint(0, ntrain_samples, ntrain_samples)
         # import pdb; pdb.set_trace()
+        index_cover.append(np.unique(I).size / ntrain_samples)
 
         train_samples = samples[:,I]
         train_values = values[I]
@@ -99,15 +101,13 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
             coef = least_squares(poly.basis_matrix,x_train,y_train)
             poly.set_coefficients(coef)
             approx_values = poly(x_test)
-            cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(y_test)
+            cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(train_values)
             errors_cv.append(cv)
 
 
         coef = least_squares(poly.basis_matrix,train_samples,train_values)
         poly.set_coefficients(coef)
 
-        # # compute condition number of training set
-        # cond = np.linalg.cond(poly.basis_matrix(train_samples))
 
         # validation_samples = samples[:,start_validation:]
         # validation_values = values[start_validation:]
@@ -121,4 +121,4 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
         # condition_numbers.append(cond)
         total_indices.append(total_effect[:])
         main_sensitivity.append(main_effect[:])
-    return errors_cv, main_sensitivity, total_indices
+    return errors_cv, main_sensitivity, total_indices, index_cover
