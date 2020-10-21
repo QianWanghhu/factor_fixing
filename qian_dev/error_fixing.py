@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pyapprox as pya
 import SALib.sample.latin as latin
 from SALib.util import read_param_file
+import time
 
 from basic.boots_pya import fun, pce_fun
 from basic.utils import variables_prep, to_df, adjust_sampling
@@ -17,7 +18,7 @@ input_path = '../data/'
 filename = f'{input_path}{file_list[0]}.csv'
 variable = variables_prep(filename, product_uniform=True)
 
-output_path = '../output/paper/'
+output_path = '../output/paper0915/'
 filename = f'{output_path}{file_list[1]}.csv'
 data = np.loadtxt(filename,delimiter=",",skiprows=1)[:,1:]
 len_params = variable.num_vars()
@@ -29,15 +30,13 @@ len_params = samples.shape[0]
 # load partial order results
 with open(f'{output_path}{file_list[2]}.json', 'r') as fp:
     partial_order = json.load(fp)
-key_use = [f'nsample_{ii}' for ii in np.arange(104, 235, 13)]
+key_use = [f'nsample_{ii}' for ii in np.arange(104, 182, 13)]
 partial_order = dict((key, value) for key, value in partial_order.items() if key in key_use)
 
 # import index_prodcut which is a array defining the correlations between parameters
 index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
-# generate samples for error metric analysis
 filename = f'{input_path}problem.txt'
 problem = read_param_file(filename, delimiter=',')
-# Define default values to fix parameters at
 x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1))
 # x_fix = np.ones(shape=(problem['num_vars'], 1))
 
@@ -49,10 +48,10 @@ if (variable.num_vars()) == 11:
     x_fix_adjust = adjust_sampling(x_fix, index_product, x_fix)
 
 # Calculate the corresponding number of bootstrap with use pf group_fix
-# the adaptive process requires PCE to be fitted with increasing sample size
-# therefore the calculation is done without avoiding repeating analysis
 conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
 rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
+
+start_time = time.time()
 for key, value in partial_order.items():
     _, sample_size = key.split('_')
     poly, error = pce_fun(variable, samples, values, 
@@ -63,8 +62,10 @@ for key, value in partial_order.items():
     error_dict[key], pool_res = group_fix(value, poly, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
 # End for
 
+print("--- %s seconds ---" % (time.time() - start_time))
+
 # # separate confidence intervals into separate dicts and write results
-save_path = f'{output_path}error_measures/0913/'
+save_path = f'{output_path}error_measures/1021_cal/'
 if not os.path.exists(save_path): os.mkdir(save_path)
 # # convert the result into dataframe
 key_outer = list(error_dict.keys())
