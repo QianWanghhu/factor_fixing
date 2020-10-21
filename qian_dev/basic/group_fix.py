@@ -140,13 +140,16 @@ def group_fix(partial_result, func, x, y_true, x_default,
             cf_width[i], cf_width_lower[i], cf_width_upper[i] = cf_width_bt.mean(), *np.quantile(cf_width_bt, [0.025, 0.975])
             ks_lower[i], ks_upper[i] = np.quantile(ks_bt, [0.025, 0.975])
             pvalue_lower[i], pvalue_upper[i] = np.quantile(pvalue_bt, [0.025, 0.975])
+            cond_mean[i] = results_fix.mean()
+
 
             if len(ind_fix) == x.shape[0]:
                 cv[i] = 0
-                cond_mean[i] = func(x_temp)[0][0]
+                # cond_mean[i] = func(x_temp)[0][0]
             else:
                 mean, variance = cond_moments(func, x_temp, ind_fix, return_variance=True)
-                cond_mean[i] = mean[0]
+                # cond_mean[i] = mean[0]
+                
                 cv[i] = (np.sqrt(variance) / mean)[0]
 
             # update pool_results
