@@ -60,7 +60,7 @@ rankings, rank_names = {}, {}
 
 nboot = 500
 rand = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples))
-for n in range(600, 1001, 100):
+for n in range(600, 601, 100):
     print(n)
     df = samples_df(sample_method='samples_product', Nsamples = n)
     for ii in range(nboot):
@@ -71,7 +71,7 @@ for n in range(600, 1001, 100):
                                         y_range_change, calc_second_order=False, 
                                         num_resamples=500, conf_level=0.95)
         try:
-            total_indices = np.append(total_indices, total_resample, axis=1)
+            rankings = np.append(total_indices, total_resample, axis=1)
         except NameError:
             total_indices = total_resample[:]                                 
     rankings[f'nsample_{n}'] = partial_rank(total_indices.T, problem_adjust['num_vars'])
@@ -85,12 +85,12 @@ sa_df = pd.DataFrame(data = [total_indices.mean(axis=1), *np.quantile(total_indi
 fpath_save = '../output/paper0915/'
 
 # save results of partial rankings for parameter index and names
-sa_df.to_csv(f'{fpath_save}sa_samples_product.csv', index=True)
+sa_df.to_csv(f'{filepath}sa_samples_product.csv', index=True)
 
-# with open(f'{fpath_save}ranking_sampling.json', 'w') as fp:
-#     json.dump(rankings, fp, indent=2)
+with open(f'{filepath}ranking_sampling.json', 'w') as fp:
+    json.dump(rankings, fp, indent=2)
 
-# with  open(f'{fpath_save}ranking_sampling_name.json', 'w') as fp:
-#     json.dump(rank_names, fp, indent=2)    
+with  open(f'{filepath}ranking_sampling_name.json', 'w') as fp:
+    json.dump(rank_names, fp, indent=2)    
 
 print("--- %s seconds ---" % (time.time() - start_time))
