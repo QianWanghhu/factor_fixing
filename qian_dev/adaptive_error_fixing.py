@@ -50,7 +50,7 @@ poly, error = pce_fun(variable, samples, values,
                     ntrain_samples=int(sample_size), degree=2)
 
 start_time = time.time()
-nstart, nstop, nstep = 1000, 1001, 500
+nstart, nstop, nstep = 1000, 5001, 500
 conf_uncond, error_dict, pool_res, y_uncond = {'median': [], 'mean': []}, {}, {}, {}
 for n in range(nstart, nstop + 1, nstep):
     print(n)
@@ -65,8 +65,8 @@ for n in range(nstart, nstop + 1, nstep):
     rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
     # add the calculation of y_uncond
     y_uncond[str(n)] = poly(x_sample).flatten()
-    conf_uncond['median'].append(np.quantile(y_uncond[str(n)][rand], [0.025, 0.975], axis=1).mean(axis=0).mean())
-    conf_uncond['mean'].append(poly.mean()[0])
+    # conf_uncond['median'].append(np.quantile(y_uncond[str(n)][rand], [0.025, 0.975], axis=1).mean(axis=0).mean())
+    # conf_uncond['mean'].append(poly.mean()[0])
 
     error_dict[str(n)], pool_res = group_fix(value, poly, x_sample, y_uncond[str(n)], 
                                     x_fix_adjust, rand, {}, file_exist=True)
@@ -74,7 +74,7 @@ for n in range(nstart, nstop + 1, nstep):
 print("--- %s seconds ---" % (time.time() - start_time))
 
 # separate confidence intervals into separate dicts and write results
-save_path = f'{output_path}error_measures/1021_cal/'
+save_path = f'{output_path}error_measures/1029_cal/'
 if not os.path.exists(save_path): os.mkdir(save_path)
 # convert the result into dataframe
 key_outer = list(error_dict.keys())
