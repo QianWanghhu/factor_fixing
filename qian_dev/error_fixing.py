@@ -10,7 +10,7 @@ import time
 
 from basic.boots_pya import fun, pce_fun
 from basic.utils import variables_prep, to_df, adjust_sampling
-from basic.group_fix import group_fix
+from basic.group_fix import group_fix, uncond_cal
 
 # import variables and samples for PCE
 file_list = ['parameter-adjust', 'samples_adjust', 'partial_reduce_beta_552', 'partial_reduce_params']
@@ -50,6 +50,7 @@ if (variable.num_vars()) == 11:
 # Calculate the corresponding number of bootstrap with use pf group_fix
 conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
 rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
+conf_level = [0.025, 0.975]
 
 start_time = time.time()
 for key, value in partial_order.items():
@@ -58,14 +59,16 @@ for key, value in partial_order.items():
                         ntrain_samples=int(sample_size), degree=2)
     # add the calculation of y_uncond
     y_uncond[key] = poly(x_sample).flatten()
-    conf_uncond[key] = np.quantile(y_uncond[key], [0.025, 0.975])
+    conf_uncond[key] = uncond_cal(rand, y_uncond[key], conf_level)
+    conf_uncond[key]['cv'] = np.sqrt(poly.variance())[0] / poly.mean()[0]
     error_dict[key], pool_res = group_fix(value, poly, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
 # End for
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
+
 # # separate confidence intervals into separate dicts and write results
-save_path = f'{output_path}error_measures/1021_cal/'
+save_path = f'{output_path}error_measures/1029_cal/'
 if not os.path.exists(save_path): os.mkdir(save_path)
 # # convert the result into dataframe
 key_outer = list(error_dict.keys())
@@ -75,28 +78,6 @@ for ele in f_names:
     df = to_df(partial_order, dict_measure)
     df.to_csv(f'{save_path}/{ele}.csv')
 
-# calculate width of confidence intervals
-uncond_df = pd.DataFrame.from_dict(conf_uncond)
-width_uncond = (uncond_df.loc[1, :] - uncond_df.loc[0, :]).values
-# import confidence intervals represented as upper and lower bounds
-cf_upper = pd.read_csv(f'{save_path}cf_upper.csv', index_col='Unnamed: 0')
-cf_lower = pd.read_csv(f'{save_path}cf_lower.csv', index_col='Unnamed: 0')
-conf_width_relative = (cf_upper - cf_lower).apply(lambda x : x / width_uncond, axis=1)
-conf_width_relative.to_csv(f'{save_path}conf_width_relative_95.csv')
-uncond_df.T.to_csv(f'{save_path}cf_uncond.csv')
-
-
-# calculate the statistics for unconditional model outputs
-key = 'nsample_156'
-poly, error = pce_fun(variable, samples, values, 
-                        ntrain_samples=int(156), degree=2)
-y_uncond_stat = {'mean' : y_uncond[key].mean(),
-                'median': np.median(y_uncond[key]),
-                'q25': np.quantile(y_uncond[key], [0.25])[0],
-                'q75': np.quantile(y_uncond[key], [0.75])[0],
-                'cf_lower': uncond_df.loc[0, key],
-                'cf_upper': uncond_df.loc[1, key],
-                'cv': np.sqrt(poly.variance())[0] / poly.mean()[0] }
 with open(f'{save_path}y_uncond_stats.json', 'w') as fp:
-    json.dump(y_uncond_stat, fp, indent=2)
+    json.dump(conf_uncond, fp, indent=2)
 
