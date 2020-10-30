@@ -83,7 +83,6 @@ def group_fix(partial_result, func, x, y_true, x_default,
 
     pool_results:
 
-    
     """
     num_group = len(partial_result) - 1
 
@@ -94,6 +93,13 @@ def group_fix(partial_result, func, x, y_true, x_default,
     cf_lower_lower, cf_lower_upper, ks_lower, pvalue_lower = dict(cf_upper), dict(cf_upper), dict(cf_upper), dict(cf_upper)
     cf_width, cf_width_lower, cf_width_upper, cond_mean = dict(cf_upper), dict(cf_upper), dict(cf_upper), dict(cf_upper)
     ind_fix = []
+    conf_level = [0.025, 0.975]
+    measures_all = [cf_upper, cf_lower, ks, pvalue, cv, 
+                    cf_upper_upper, cf_upper_lower, cf_lower_upper, 
+                    cf_lower_lower, ks_lower, ks_upper, 
+                    pvalue_lower,  pvalue_upper,
+                    cf_width,  cf_width_lower, 
+                    cf_width_upper,  cond_mean]
     
     for i in range(num_group, -1, -1):
         if file_exist:
@@ -117,31 +123,25 @@ def group_fix(partial_result, func, x, y_true, x_default,
             x_copy = np.copy(x)
             x_copy[ind_fix, :] = x_temp
             results_fix = func(x_copy).flatten()
-
             # compare results with insignificant parameters fixed
             Nresample = rand.shape[0]
             pvalue_bt,  ks_bt,  cf_upper_bt, cf_lower_bt, cf_width_bt, y_true_width = \
             np.zeros(Nresample), np.zeros(Nresample), np.zeros(Nresample), np.zeros(Nresample), \
             np.zeros(Nresample), np.zeros(Nresample)
-
             for ii in range(Nresample):            
                 I = rand[ii]
-                y_true_resample = y_true[I]
-                results_fix_resample = results_fix[I]                
-                cf_lower_bt[ii], cf_upper_bt[ii] = np.quantile(results_fix_resample, [0.025, 0.975])
-                ks_bt[ii], pvalue_bt[ii] = stats.ks_2samp(y_true_resample, results_fix_resample)
-                y_true_width[ii] = np.quantile(y_true_resample, 0.975) - np.quantile(y_true_resample, 0.025)
+                [cf_lower_bt[ii], cf_upper_bt[ii], ks_bt[ii], pvalue_bt[ii],  y_true_width[ii]] \
+                    = error_measure(I, y_true, results_fix, conf_level)
             cf_width_bt = (cf_upper_bt - cf_lower_bt) / y_true_width
             # End for
-            # import pdb; pdb.set_trace()
+            
             cf_upper[i], cf_lower[i], ks[i], pvalue[i] = cf_upper_bt.mean(), cf_lower_bt.mean(), ks_bt.mean(), pvalue_bt.mean()
-            cf_upper_lower[i], cf_upper_upper[i] = np.quantile(cf_upper_bt, [0.025, 0.975])
-            cf_lower_lower[i], cf_lower_upper[i] = np.quantile(cf_lower_bt, [0.025, 0.975])
-            cf_width[i], cf_width_lower[i], cf_width_upper[i] = cf_width_bt.mean(), *np.quantile(cf_width_bt, [0.025, 0.975])
-            ks_lower[i], ks_upper[i] = np.quantile(ks_bt, [0.025, 0.975])
-            pvalue_lower[i], pvalue_upper[i] = np.quantile(pvalue_bt, [0.025, 0.975])
+            cf_upper_lower[i], cf_upper_upper[i] = np.quantile(cf_upper_bt, conf_level)
+            cf_lower_lower[i], cf_lower_upper[i] = np.quantile(cf_lower_bt, conf_level)
+            cf_width[i], cf_width_lower[i], cf_width_upper[i] = cf_width_bt.mean(), *np.quantile(cf_width_bt, conf_level)
+            ks_lower[i], ks_upper[i] = np.quantile(ks_bt, conf_level)
+            pvalue_lower[i], pvalue_upper[i] = np.quantile(pvalue_bt, conf_level)
             cond_mean[i] = results_fix.mean()
-
 
             if len(ind_fix) == x.shape[0]:
                 cv[i] = 0
@@ -151,37 +151,78 @@ def group_fix(partial_result, func, x, y_true, x_default,
                 # cond_mean[i] = mean[0]
                 
                 cv[i] = (np.sqrt(variance) / mean)[0]
+            # End If
 
             # update pool_results
-            measure_list = [
-                            cf_upper[i], cf_lower[i], ks[i], pvalue[i], cv[i], cf_upper_upper[i], 
-                            cf_upper_lower[i], cf_lower_upper[i], cf_lower_lower[i], ks_lower[i], ks_upper[i],
-                            pvalue_lower[i], pvalue_upper[i],
-                            cf_width[i], cf_width_upper[i], cf_width_lower[i],
-                            cond_mean[i]
-                            ]
-
+            measure_list = [measure_ele[i] for measure_ele in measures_all]
             pool_results = pool_update(ind_fix, measure_list, pool_results)
         else:
             # map index to calculated values
-            [
-            cf_upper[i], cf_lower[i], ks[i], pvalue[i], cv[i], cf_upper_upper[i], 
-            cf_upper_lower[i], cf_lower_upper[i], cf_lower_lower[i], ks_lower[i], ks_upper[i],
-            pvalue_lower[i], pvalue_upper[i],
-            cf_width[i], cf_width_upper[i], cf_width_lower[i], cond_mean[i]
-            ] = \
-            skip_calcul
+            for ele in range(len(measures_all)):
+                measures_all[ele][i] = skip_calcul[ele]
         # End if
     # End for()
 
-    dict_return = {'cf_upper': cf_upper, 'cf_lower': cf_lower, 'ks': ks, 'pvalue': pvalue, 'cv': cv, 
-                    'cf_upper_upper': cf_upper_upper, 'cf_upper_lower': cf_upper_lower, 'cf_lower_upper': cf_lower_upper, 
-                    'cf_lower_lower': cf_lower_lower, 'ks_lower': ks_lower, 'ks_upper': ks_upper, 
-                    'pvalue_lower': pvalue_lower, 'pvalue_upper': pvalue_upper,
-                    'cf_width' : cf_width, 'cf_width_lower' : cf_width_lower, 
-                    'cf_width_upper' : cf_width_upper, 'cond_mean' : cond_mean}
+    names = ['cf_upper', 'cf_lower', 'ks', 'pvalue', 'cv', 
+            'cf_upper_upper', 'cf_upper_lower', 'cf_lower_upper', 
+            'cf_lower_lower', 'ks_lower', 'ks_upper', 
+            'pvalue_lower', 'pvalue_upper',
+            'cf_width', 'cf_width_lower', 
+            'cf_width_upper', 'cond_mean']
+    dict_return = dict(zip(names, measures_all))
 
     return dict_return, pool_results
+
+def error_measure(I, y_true, results_fix, conf_level):
+    """
+    Calculate the error measures with a resample dataset.
+
+    Parameters:
+    ----------
+    I : np.array
+        the random index of each  bootstrap
+    y_true : list,
+            Function results with all x varying (the raw sampling matrix of x)
+    result_fix : list,
+            Conditional results with all some x fixed
+
+    Returns:
+    ----------
+    List, values of error measures
+    """
+    y_true_resample = y_true[I]
+    results_fix_resample = results_fix[I]                
+    cf_lower_temp, cf_upper_temp = np.quantile(results_fix_resample, conf_level)
+    ks_bt_temp, pvalue_bt_temp = stats.ks_2samp(y_true_resample, results_fix_resample)
+    y_true_width_temp = np.quantile(y_true_resample, conf_level[1]) - np.quantile(y_true_resample, conf_level[0])
+    return [cf_lower_temp, cf_upper_temp, ks_bt_temp, pvalue_bt_temp, y_true_width_temp]
+
+def uncond_cal(rand, y_true, conf_level):
+    """
+    Calculate the unconditional results
+    Parameters:
+    ----------
+    partial_key: key of the partail_results
+
+    Returns:
+    ----------
+
+    """
+    y_true_bt = y_true[rand]
+    uncond_cf_bt = np.quantile(y_true_bt, conf_level, axis=1)
+    uncond_cf_low, uncond_cf_up = {},  {}
+    uncond_cf_low['mean'] = uncond_cf_bt[0].mean()   
+    uncond_cf_low['low'], uncond_cf_low['up'] = np.quantile(uncond_cf_bt[0], conf_level)
+    uncond_cf_up['mean'] = uncond_cf_bt[1].mean()   
+    uncond_cf_up['low'], uncond_cf_up['up'] = np.quantile(uncond_cf_bt[1], conf_level)
+    uncond_dict = {
+                    'uncond_cf_low' : uncond_cf_low, 
+                    'uncond_cf_up' : uncond_cf_up, 
+                    'uncond_mean': y_true_bt.mean()
+                    }
+    return uncond_dict
+
+
 
 
 def results_exist(parms_fixed, pool_results):
