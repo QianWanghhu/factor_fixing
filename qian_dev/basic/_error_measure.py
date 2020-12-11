@@ -5,7 +5,8 @@ from scipy import stats
 from scipy.stats import median_absolute_deviation as mad
 from sklearn.metrics import r2_score, mean_squared_error
 from pyapprox.multivariate_polynomials import conditional_moments_of_polynomial_chaos_expansion as cond_moments
-def group_fix(partial_result, func, x, y_true, x_default, option_return='conf', file_exist=False):
+def group_fix(partial_result, func, x, y_true, x_default, 
+            option_return='conf', file_exist=False):
     """
     Function for compare results between conditioned and unconditioned QoI.
     Fix parameters from the least influential group 
@@ -79,9 +80,6 @@ def group_fix(partial_result, func, x, y_true, x_default, option_return='conf', 
             measure1[i], measure2[i] = stats.ks_2samp(y_true, results_fix)
         elif option_return == 'raw':
             measure1[i] = results_fix
-        elif option_return == 'median':
-            measure1[i] = np.median(results_fix)
-            measure2[i] = mad(results_fix) / np.median(y_true)
             
     return measure1, measure2#[co_var] #[ks_stats, ks_pvalue]， result_cond
 # End group_fix()
