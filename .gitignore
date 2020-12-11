@@ -128,10 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-output/
-
-data/
-
 .vscode/settings.json
 
 qian_dev/.~visualization.ipynb

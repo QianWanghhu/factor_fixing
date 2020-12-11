@@ -1,0 +1,10 @@
+bankErosionCoeff,0.1488,0.2,bankErosionCoeff,unif
+eventMeanConcentration,0.8,1.2,eventMeanConcentration,unif
+HillslopeFineSDR,0.405,1.1,HillslopeFineSDR,unif
+RiparianVegPercent,0.9,1.1,RiparianVegPercent,unif
+USLE_HSDR_Fine,0.85,1.15,USLE_HSDR_Fine,unif
+A3,0.8,1.2,Alpha,unif
+RainThreshold,0.8,1.2,RainThreshold,unif
+Beta,0.9,1.1,Beta,unif
+Gully_Management_Practice_Factor,0.81,1.1,Gully_Management_Practice_Factor,unif
+maxRiparianVegEffectiveness,0.95,1.05,maxRiparianVegEffectiveness,unif

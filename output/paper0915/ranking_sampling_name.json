@@ -1,0 +1,137 @@
+{
+  "nsample_600": {
+    "0": [
+      "bankErosionCoeff"
+    ],
+    "1": [
+      "Beta"
+    ],
+    "2": [
+      "RiparianVegPercent"
+    ],
+    "3": [
+      "HillslopeFineSDR",
+      "USLE_HSDR_Fine"
+    ],
+    "4": [
+      "LongTermAvDailyFlow",
+      "eventMeanConcentration"
+    ],
+    "5": [
+      "Gully_Management_Practice_Factor",
+      "A3",
+      "RainThreshold"
+    ],
+    "6": [
+      "maxRiparianVegEffectiveness"
+    ]
+  },
+  "nsample_700": {
+    "0": [
+      "bankErosionCoeff"
+    ],
+    "1": [
+      "Beta"
+    ],
+    "2": [
+      "RiparianVegPercent"
+    ],
+    "3": [
+      "HillslopeFineSDR",
+      "USLE_HSDR_Fine"
+    ],
+    "4": [
+      "LongTermAvDailyFlow",
+      "eventMeanConcentration"
+    ],
+    "5": [
+      "Gully_Management_Practice_Factor",
+      "A3",
+      "RainThreshold"
+    ],
+    "6": [
+      "maxRiparianVegEffectiveness"
+    ]
+  },
+  "nsample_800": {
+    "0": [
+      "bankErosionCoeff"
+    ],
+    "1": [
+      "Beta"
+    ],
+    "2": [
+      "RiparianVegPercent"
+    ],
+    "3": [
+      "HillslopeFineSDR",
+      "USLE_HSDR_Fine"
+    ],
+    "4": [
+      "LongTermAvDailyFlow",
+      "eventMeanConcentration"
+    ],
+    "5": [
+      "Gully_Management_Practice_Factor",
+      "A3",
+      "RainThreshold"
+    ],
+    "6": [
+      "maxRiparianVegEffectiveness"
+    ]
+  },
+  "nsample_900": {
+    "0": [
+      "bankErosionCoeff"
+    ],
+    "1": [
+      "Beta"
+    ],
+    "2": [
+      "RiparianVegPercent"
+    ],
+    "3": [
+      "HillslopeFineSDR",
+      "USLE_HSDR_Fine"
+    ],
+    "4": [
+      "LongTermAvDailyFlow",
+      "eventMeanConcentration"
+    ],
+    "5": [
+      "Gully_Management_Practice_Factor",
+      "A3",
+      "RainThreshold"
+    ],
+    "6": [
+      "maxRiparianVegEffectiveness"
+    ]
+  },
+  "nsample_1000": {
+    "0": [
+      "bankErosionCoeff"
+    ],
+    "1": [
+      "Beta"
+    ],
+    "2": [
+      "RiparianVegPercent"
+    ],
+    "3": [
+      "HillslopeFineSDR",
+      "USLE_HSDR_Fine"
+    ],
+    "4": [
+      "LongTermAvDailyFlow",
+      "eventMeanConcentration"
+    ],
+    "5": [
+      "Gully_Management_Practice_Factor",
+      "A3",
+      "RainThreshold"
+    ],
+    "6": [
+      "maxRiparianVegEffectiveness"
+    ]
+  }
+}
