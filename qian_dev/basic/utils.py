@@ -84,7 +84,7 @@ def epsi_cal(x, y):
 
     return epsi, y_ave
 
-def variables_prep(filename, product_uniform=False):
+def variables_prep(filename, product_uniform=False, dummy=False):
     """
     Help function for preparing the data training data to fit PCE.
     Parameters:
@@ -97,6 +97,7 @@ def variables_prep(filename, product_uniform=False):
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     if product_uniform == False:    
         ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
+        if dummy: ranges = np.append(ranges, [0, 1])
         univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(0, ranges.shape[0]//2)]
         variable = pya.IndependentMultivariateRandomVariable(univariate_variables)
         return variable

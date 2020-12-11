@@ -84,8 +84,10 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
     kf = KFold(n_splits=10)
 
     for _ in range(nboot):
-        I = np.random.randint(0, ntrain_samples, ntrain_samples)
-        # import pdb; pdb.set_trace()
+        if nboot == 1:
+            I = np.arange(ntrain_samples)
+        else:
+            I = np.random.randint(0, ntrain_samples, ntrain_samples)
         index_cover.append(np.unique(I).size / ntrain_samples)
 
         train_samples = samples[:,I]
@@ -121,4 +123,7 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
         # condition_numbers.append(cond)
         total_indices.append(total_effect[:])
         main_sensitivity.append(main_effect[:])
-    return errors_cv, main_sensitivity, total_indices, index_cover
+        if nboot == 1:
+            return poly, errors_cv, main_sensitivity, total_indices
+        else:
+            return errors_cv, main_sensitivity, total_indices, index_cover
