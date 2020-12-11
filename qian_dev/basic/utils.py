@@ -97,10 +97,7 @@ def variables_prep(filename, product_uniform=False, dummy=False):
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     if product_uniform == False:    
         ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
-        if dummy: ranges = np.append(ranges, [0, 1])
         univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(0, ranges.shape[0]//2)]
-        variable = pya.IndependentMultivariateRandomVariable(univariate_variables)
-        return variable
     else:
         param_adjust = pd.read_csv(filename)
         beta_index = param_adjust[param_adjust['distribution']== 'beta'].index.to_list()
@@ -111,16 +108,17 @@ def variables_prep(filename, product_uniform=False, dummy=False):
         for ii in range(param_adjust.shape[0]):
             if ii in beta_index:
                 shape_ab = param_adjust.loc[ii, ['a','b']].values.astype('float')
-                # import pdb
-                # pdb.set_trace()
                 univariate_variables.append(beta(shape_ab[0], shape_ab[1], 
                                             loc=ranges[ii][0], scale=ranges[ii][1]))
             else:
                 # uniform_args = ranges[ii]
                 univariate_variables.append(uniform(ranges[ii][0], ranges[ii][1]))
             # End if
-        variable_adjust = pya.IndependentMultivariateRandomVariable(univariate_variables)
-        return variable_adjust
+    if dummy == True: univariate_variables.append(uniform(0, 1))
+    # import pdb
+    # pdb.set_trace()
+    variable = pya.IndependentMultivariateRandomVariable(univariate_variables)
+    return variable
         # End for()
 
 def adjust_sampling(x_sample, index_product, x_fix):
