@@ -42,6 +42,7 @@ x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1
 
 x_sample = latin.sample(problem, 1000, seed=88)
 x_sample = x_sample.T
+# np.savetxt('../output/paper0915/metric_samples.txt',x_sample)
 # if reduce parameters, change samples
 if (variable.num_vars()) == 11:
     x_sample = adjust_sampling(x_sample, index_product, x_fix)
