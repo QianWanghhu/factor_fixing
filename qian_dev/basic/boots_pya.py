@@ -45,6 +45,7 @@ def pce_fun(variable, samples, values, ntrain_samples, degree=2, boot_ind=None):
 
     validation_samples = samples[:,ntrain_samples:]
     validation_values = values[ntrain_samples:]
+    # import pdb; pdb.set_trace()
     approx_values = poly(validation_samples)
     error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
     return poly, error

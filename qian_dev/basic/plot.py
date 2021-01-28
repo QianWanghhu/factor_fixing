@@ -34,3 +34,22 @@ def plot_error_cv(df, save_fig, save_path, fig_name, log_scale):
         plt.savefig(f'{save_path}{fig_name}.png', dpi = 300, format = 'png')
     else:
         plt.show()
+
+
+# sensitivity plot
+def short_name(df):
+    fp = '../data/'
+    name_df = pd.read_csv(f'{fp}parameter-implement.csv')
+    df['short_name'] = None
+    for ii in range(df.shape[0]):
+        df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values 
+    return df
+# End short_name()
+
+def df_read(fpath, fname, result_type, type_num):
+    df = pd.read_csv(f'{fpath}{fname}')
+    df.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
+    df['Type'] = result_type
+    df['Type_num'] = type_num
+    return df
+# End df_read()

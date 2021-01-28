@@ -11,25 +11,18 @@ import time
 from basic.boots_pya import fun, pce_fun
 from basic.utils import variables_prep, to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
+from basic.read_data import file_settings, read_specify
 
 # import variables and samples for PCE
-file_list = ['parameter-adjust', 'samples_adjust', 'partial_reduce_beta_552', 'partial_reduce_params']
-input_path = '../data/'
-filename = f'{input_path}{file_list[0]}.csv'
-variable = variables_prep(filename, product_uniform=True)
+input_path = file_settings()[1]
+variable, _ = read_specify('parameter', 'reduced', product_uniform=True, num_vars=11)
 
-output_path = '../output/paper0915/'
-filename = f'{output_path}{file_list[1]}.csv'
-data = np.loadtxt(filename,delimiter=",",skiprows=1)[:,1:]
+output_path = file_settings()[0]
+samples, values = read_specify('model', 'reduced', product_uniform=False, num_vars=11)
 len_params = variable.num_vars()
-samples = data[:,:len_params].T
-values = data[:,len_params:]
-values = values[:,:1]
-len_params = samples.shape[0]
 
 # load partial order results
-with open(f'{output_path}{file_list[2]}.json', 'r') as fp:
-    partial_order = json.load(fp)
+partial_order = read_specify('rank', 'reduced', product_uniform=True, num_vars=11)
 key_use = [f'nsample_{ii}' for ii in np.arange(104, 182, 13)]
 partial_order = dict((key, value) for key, value in partial_order.items() if key in key_use)
 
@@ -50,26 +43,36 @@ if (variable.num_vars()) == 11:
 
 # Calculate the corresponding number of bootstrap with use pf group_fix
 conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
-rand = np.random.randint(0, x_sample.shape[1], size=(1000, x_sample.shape[1]))
+rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
 conf_level = [0.025, 0.975]
 
 start_time = time.time()
+num_pce = 500
 for key, value in partial_order.items():
-    _, sample_size = key.split('_')
-    poly, error = pce_fun(variable, samples, values, 
-                        ntrain_samples=int(sample_size), degree=2)
+    pce_list = []; cv_temp = np.zeros(num_pce)
+    y_temp = np.zeros(shape=(num_pce, x_sample.shape[1]))
+    _, sample_size = key.split('_')[0], int(key.split('_')[1])
+    print(f'------------------Training samples: {sample_size}------------------------')
+    rand_pce = np.random.randint(0, sample_size, size=(num_pce, sample_size))
+    for i in range(rand_pce.shape[0]):
+        poly, _, _, _ = fun(variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
+            degree=2, nboot=1, ntrain_samples=sample_size)
     # add the calculation of y_uncond
-    y_uncond[key] = poly(x_sample).flatten()
-    conf_uncond[key] = uncond_cal(rand, y_uncond[key], conf_level)
-    conf_uncond[key]['cv'] = np.sqrt(poly.variance())[0] / poly.mean()[0]
-    error_dict[key], pool_res = group_fix(value, poly, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
+        pce_list.append(poly)
+        y_temp[i, :] = poly(x_sample).flatten()
+        cv_temp[i] = np.sqrt(poly.variance())[0] / poly.mean()[0]
+    y_uncond[key] = y_temp
+    conf_uncond[key] = uncond_cal(y_uncond[key], conf_level, rand)
+    conf_uncond[key]['cv'] = cv_temp[i].mean()
+    conf_uncond[key]['cv_low'], conf_uncond[key]['cv_up'] = \
+        np.quantile(cv_temp, [0.025, 0.975])
+    error_dict[key], pool_res = group_fix(value, pce_list, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
 # End for
 
 print("--- %s seconds ---" % (time.time() - start_time))
 
-
 # # separate confidence intervals into separate dicts and write results
-save_path = f'{output_path}error_measures/1029_cal/'
+save_path = f'{output_path}error_measures/0112_cal/'
 if not os.path.exists(save_path): os.mkdir(save_path)
 # # convert the result into dataframe
 key_outer = list(error_dict.keys())

@@ -10,20 +10,14 @@ from pyapprox.random_variable_algebra import product_of_independent_random_varia
 from basic.boots_pya import least_squares, fun
 from basic.partial_rank import partial_rank
 from basic.utils import variables_prep
+from basic.read_data import read_specify, file_settings
 
 start_time = time.time()
 # import the original parameter sets
-def pya_boot_sensitivity(product_uniform=True):
-    file_input = 'data/'
-    filename = f'{file_input}parameter-adjust.csv'
-    variable = variables_prep(filename, product_uniform)
-
-    file_sample = 'output/paper0915/'
-    filename = f'{file_sample}samples_adjust.csv'
-    data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
+def pya_boot_sensitivity(product_uniform):
+    variable = read_specify('parameter', 'reduced', product_uniform, num_vars=11)
     len_params = variable.num_vars()
-    samples = data[:,:len_params].T
-    values = data[:,len_params:]
+    samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
 
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
     # n_strat, n_end, n_setp = [104, 553, 13]
@@ -48,7 +42,6 @@ def pya_boot_sensitivity(product_uniform=True):
         errors_cv_all[f'nsample_{i}'] = errors_cv
         index_cover_all[f'nsample_{i}'] = index_cover
         # errors_bt_all[f'nsample_{i}'] = errors_bt
-
     # End for
 
     filepath = 'output/paper0915/figure4/test_plot/'
@@ -60,7 +53,7 @@ def pya_boot_sensitivity(product_uniform=True):
     np.savez(f'{filepath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, index_cover = index_cover_all)
 
 
-def main(product_uniform=True):
+def run_pya(product_uniform=True):
     filepath = 'output/paper0915/figure4/test_plot/'
     if product_uniform == True:
         dist_type = 'beta'
@@ -90,6 +83,7 @@ def main(product_uniform=True):
         json.dump(index_cover, fp, indent=2)
     
 if __name__ == "__main__":
-    main(product_uniform=False)
+    product_uniform = False
+    run_pya(product_uniform)
 
 print("--- %s seconds ---" % (time.time() - start_time))
