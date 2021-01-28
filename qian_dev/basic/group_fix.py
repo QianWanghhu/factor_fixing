@@ -122,16 +122,22 @@ def group_fix(partial_result, func, x, y_true, x_default,
         if skip_calcul == False:
             x_copy = np.copy(x)
             x_copy[ind_fix, :] = x_temp
-            results_fix = func(x_copy).flatten()
             # compare results with insignificant parameters fixed
             Nresample = rand.shape[0]
+            num_func = len(func)
+            total_resample = num_func * Nresample
             pvalue_bt,  ks_bt,  cf_upper_bt, cf_lower_bt, cf_width_bt, y_true_width = \
-            np.zeros(Nresample), np.zeros(Nresample), np.zeros(Nresample), np.zeros(Nresample), \
-            np.zeros(Nresample), np.zeros(Nresample)
-            for ii in range(Nresample):            
-                I = rand[ii]
-                [cf_lower_bt[ii], cf_upper_bt[ii], ks_bt[ii], pvalue_bt[ii],  y_true_width[ii]] \
-                    = error_measure(I, y_true, results_fix, conf_level)
+            np.zeros(total_resample), np.zeros(total_resample), np.zeros(total_resample), np.zeros(total_resample), \
+            np.zeros(total_resample), np.zeros(total_resample)
+            ## Add the bootstrap of PCE
+            for jj in range(num_func):
+                fun = func[jj]
+                results_fix = fun(x_copy).flatten()
+                for ii in range(Nresample):            
+                    I = rand[ii]
+                    ind_resample = jj * Nresample + ii
+                    [cf_lower_bt[ind_resample], cf_upper_bt[ind_resample], ks_bt[ind_resample], pvalue_bt[ind_resample],  y_true_width[ind_resample]] \
+                        = error_measure(I, y_true[jj], results_fix, conf_level)
             cf_width_bt = (cf_upper_bt - cf_lower_bt) / y_true_width
             # End for
             
@@ -147,7 +153,7 @@ def group_fix(partial_result, func, x, y_true, x_default,
                 cv[i] = 0
                 # cond_mean[i] = func(x_temp)[0][0]
             else:
-                mean, variance = cond_moments(func, x_temp, ind_fix, return_variance=True)
+                mean, variance = cond_moments(fun, x_temp, ind_fix, return_variance=True)
                 # cond_mean[i] = mean[0]
                 
                 cv[i] = (np.sqrt(variance) / mean)[0]
@@ -197,7 +203,7 @@ def error_measure(I, y_true, results_fix, conf_level):
     y_true_width_temp = np.quantile(y_true_resample, conf_level[1]) - np.quantile(y_true_resample, conf_level[0])
     return [cf_lower_temp, cf_upper_temp, ks_bt_temp, pvalue_bt_temp, y_true_width_temp]
 
-def uncond_cal(rand, y_true, conf_level):
+def uncond_cal(y_true, conf_level, rand):
     """
     Calculate the unconditional results
     Parameters:
@@ -208,8 +214,17 @@ def uncond_cal(rand, y_true, conf_level):
     ----------
 
     """
-    y_true_bt = y_true[rand]
-    uncond_cf_bt = np.quantile(y_true_bt, conf_level, axis=1)
+    # if rand is None:
+    #     y_true_bt = y_true
+    # elif isinstance(rand, np.ndarray):
+    #     y_true_bt = y_true[rand]
+    # else:
+    #     AssertionError
+    y_true_bt = np.zeros(shape=(y_true.shape[0], rand.shape[0], y_true.shape[1]))
+    for ii in range(y_true.shape[0]):
+        y_true_bt[ii] = y_true[ii][rand]
+    uncond_cf_bt = np.quantile(y_true_bt, conf_level, axis=2)
+    # import pdb; pdb.set_trace()
     uncond_cf_low, uncond_cf_up = {},  {}
     uncond_cf_low['mean'] = uncond_cf_bt[0].mean()   
     uncond_cf_low['low'], uncond_cf_low['up'] = np.quantile(uncond_cf_bt[0], conf_level)
