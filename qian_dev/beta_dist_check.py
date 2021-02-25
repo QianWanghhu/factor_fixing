@@ -1,3 +1,6 @@
+"""
+Script used to approximate the product of uniforms with Beta distribution.
+"""
 import numpy as np
 import pandas as pd
 import pyapprox as pya
@@ -10,18 +13,19 @@ from matplotlib import rc
 import time
 import os
 rc("text", usetex=False)
+from basic.read_data import file_settings, read_specify
 
 from basic.utils import variables_prep
 
 start_time = time.time()
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-filepath = '../data/'
-filename = f'{filepath}parameter-implement.csv'
+input_path = file_settings()[1]
+filename = f'{input_path}parameter-implement.csv'
 variable = variables_prep(filename, product_uniform=False)
-index_product = np.load(f'{filepath}index_product.npy', allow_pickle=True)
+index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
 
 # Check whether the Beta distribution is a proper option
-filename = f'{filepath}parameter-adjust.csv'
+filename = f'{input_path}parameter-adjust.csv'
 param_adjust = pd.read_csv(filename)
 beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
             index.to_list()
@@ -56,8 +60,8 @@ for ii in range(list(index_product.shape)[0]):
 # End for
 # plot CDFs of the fitted Beta distribution and samples
 
-filepath_save = '../output/paper0915/beta_validate/'
-if not os.path.exists(filepath_save): os.mkdir(filepath_save)
+output_path = file_settings()[0] + 'Beta_approximate/'
+if not os.path.exists(output_path): os.mkdir(output_path)
 def plot_dists(beta_aguments, rv_product, ii):
     x = np.sort(rv_product)
     def ecdf(x):
@@ -78,6 +82,6 @@ for ii in range(list(index_product.shape)[0]):
     beta_aguments = beta_fit[ii]
     parameter = param_names[ii]
     plot_dists(beta_aguments, rv_product, ii)
-plt.savefig(f'{filepath_save}beta_compare.png', format='png', dpi=300)
+plt.savefig(f'{output_path}beta_compare.png', format='png', dpi=300)
 
 print("--- %s seconds ---" % (time.time() - start_time))
