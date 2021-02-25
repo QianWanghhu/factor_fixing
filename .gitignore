@@ -145,3 +145,5 @@ qian_dev/dischare.py.baiduyun.uploading.cfg
 *.cfg
 
 output/
+
+data/
