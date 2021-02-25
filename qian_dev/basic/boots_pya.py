@@ -22,35 +22,6 @@ def least_squares(basis_matrix_function,samples,values):
     coef = np.linalg.lstsq(basis_matrix,values,rcond=None)[0]
     return coef
 
-def pce_fun(variable, samples, values, ntrain_samples, degree=2, boot_ind=None):
-    """
-    Help function for only fitting and returning PCE object.
-    """
-    poly = pya.get_polynomial_from_variable(variable)
-    poly.set_indices(pya.compute_hyperbolic_indices(
-        variable.num_vars(),degree))
-
-    # nsamples = samples.shape[1]
-    if ntrain_samples == None:
-        ntrain_samples = poly.get_indices().shape[1]*3
-    
-    if boot_ind is None:
-        train_samples = samples[:,:ntrain_samples]
-        train_values = values[:ntrain_samples]
-    else:
-        train_samples = samples[:,boot_ind]
-        train_values = values[boot_ind]
-    coef = least_squares(poly.basis_matrix,train_samples,train_values)
-    poly.set_coefficients(coef)
-
-    validation_samples = samples[:,ntrain_samples:]
-    validation_values = values[ntrain_samples:]
-    # import pdb; pdb.set_trace()
-    approx_values = poly(validation_samples)
-    error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
-    return poly, error
-
-
 def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=None):
     """
     Function to train PCE and conduct boostrap.
