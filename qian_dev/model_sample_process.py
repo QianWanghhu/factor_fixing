@@ -14,7 +14,7 @@ from basic.read_data import file_settings, read_specify
 
 # read model results
 def samples_combine():
-    filepath = file_settings()[0]
+    filepath = file_settings()[1]
     # combine TSS results into a file
     filenames = os.listdir(filepath)
     for fn in filenames:
@@ -29,7 +29,6 @@ def samples_combine():
             except NameError:
                 f_quantile = tss_temp.sum(axis = 0).values / 14                
     file_sample = [fn for fn in filenames if 'sample' in fn]
-    print(filenames)
     f_train = pd.read_csv(f'{filepath}{file_sample[0]}', index_col= 'index')
     f_train.loc[:, 'ave_annual'] = f_quantile
     f_train.to_csv(f'{filepath}2000_2014_ave_annual.csv', index_label='id')
@@ -37,10 +36,11 @@ def samples_combine():
 def model_ts_reduced():
     file_names = file_settings()
     fpath_save = file_names[0]
-    filename = file_names[3]
+    filename = file_names[2]
     # import samples and values
     if not os.path.exists(filename):
         samples_combine()
+    print('run')
 
     samples, values = read_specify('model', 'full', product_uniform=False, num_vars=22)
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
@@ -51,8 +51,8 @@ def model_ts_reduced():
 
     # define variables with Beta distribution
     variable_adjust, param_adjust = read_specify('parameter', 'reduced', product_uniform=True, num_vars=11)
-    beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
-                index.to_list()
+    # beta_index = param_adjust[param_adjust['distribution']== 'beta'].\
+    #             index.to_list()
 
     samples_adjust = np.copy(samples)
     pars_delete = []
@@ -66,8 +66,5 @@ def model_ts_reduced():
     samples_adjust = np.append(samples_adjust, [values.flatten()], axis=0)    
     df_adjust = pd.DataFrame(data = samples_adjust.T, 
                             index = np.arange(samples_adjust.shape[1]),
-                            columns = [*param_adjust.loc[:, 'Veneer_name'], 'TSS_ave'])
+                            columns = [*param_adjust, 'TSS_ave'])
     df_adjust.to_csv(f'{fpath_save}samples_adjust.csv')
-
-if __name__ == "__main__":
-    model_ts_reduced()
