@@ -1,3 +1,8 @@
+"""
+Script used to run most of the results used in the paper.
+Compring different PCEs, uncertainty measures due to factor fixing.
+"""
+
 import pandas as pd
 import numpy as np
 from SALib.util import read_param_file
@@ -7,19 +12,30 @@ from basic.utils import variables_prep, to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
+##==============================##============================##
+# Combine model results and reform into 11-dimension dataset.
+print('Combine and post-process of model results')
 from model_sample_process import model_ts_reduced
 model_ts_reduced()
+
+##==============================##============================##
 # apply_pya to produce the sensitivities of parameters for different PCEs
-from apply_pya import run_pya
+from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
+num_pce=10; seed=222
 # PCE with uniform distributions
-product_uniform = False
-run_pya(outpath, product_uniform)
+print('--------PCE-U with increasing samples--------')
+run_pya(outpath, num_pce, seed, product_uniform=False)
 
 # PCE with Beta distributions
-product_uniform = True
-run_pya(outpath, product_uniform)
+print('--------PCE-B with increasing samples--------')
+run_pya(outpath, num_pce, seed, product_uniform=True)
 
+# PCE with 22 parameters
+print('----------------PCE-22----------------')
+pce_22(num_pce, seed, 552)
+
+##==============================##============================##
 # evaluate the uncertainty measures from fixing parameters
 # import variables and samples for PCE
 input_path = file_settings()[1]
@@ -43,17 +59,24 @@ if (variable.num_vars()) == 11:
 
 # Fixing parameters ranked by different PCEs 
 # and 1000 samples are used to calculate the uncertainty measures
+print('--------Calculate uncertainty measurs due to FF with PCE-B--------')
 from error_fixing import fix_group_ranking
 key_use = [f'nsample_{ii}' for ii in np.arange(104, 131, 13)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_group_ranking(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, sample_range[0])
+    partial_order, index_product, problem, x_fix, x_fix_adjust, 
+        num_pce, seed, sample_range[0])
 
-from error_fixing import fix_increase_sample
+##==============================##============================##
 # Fixing parameters ranked by a PCE trained with 156 model runs 
 # and increasing samples are used to calculate the uncertainty measures
+print('--------Calculate uncertainty measurs due to FF with increasing samples and a PCE-B--------')
+from error_fixing import fix_increase_sample
 key_use = [f'nsample_{ii}' for ii in [156]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, sample_range)
+    partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
+        seed, sample_range)
+
+
 
