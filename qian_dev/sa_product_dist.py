@@ -9,7 +9,7 @@ from SALib.sample import saltelli
 from SALib.analyze import sobol
 import json
 import time
-from basic.boots_pya import fun, pce_fun
+from basic.boots_pya import fun
 from basic.utils import variables_prep, names_match
 from basic.partial_rank import partial_rank
 from basic.read_data import file_settings, read_specify

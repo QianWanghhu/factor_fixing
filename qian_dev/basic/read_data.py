@@ -11,7 +11,7 @@ def file_settings():
     model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
     
-    param_full = f'{input_dir}parameter-implement.csv'
+    param_full = f'{input_dir}parameter.csv'
     param_reduced = f'{input_dir}parameter-adjust.csv'
     ranks_reduced_beta = f'{model_dir}partial_reduce_beta_552.json'
     ranks_reduced_uni = f'{model_dir}partial_reduce_params.json'

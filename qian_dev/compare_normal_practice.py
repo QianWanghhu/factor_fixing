@@ -12,7 +12,7 @@ from basic.read_data import file_settings, read_specify
 
 # Calculate the corresponding number of bootstrap with use of group_fix
 ntrain_samples = 552
-num_pce = 500
+num_pce = 10
 input_path = file_settings()[1]
 variable, _ = read_specify('parameter', 'full', product_uniform=False, num_vars=22)
 
@@ -28,7 +28,7 @@ x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1
 x_sample = np.loadtxt(f'{output_path}metric_samples.txt')
 
 pool_res = {}
-rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
+rand = np.random.randint(0, x_sample.shape[1], size=(10, x_sample.shape[1]))
 cv_temp = np.zeros(num_pce)
 rand_pce = np.random.randint(0, ntrain_samples, size=(num_pce, ntrain_samples))
 ci_bounds = [0.025, 0.975]

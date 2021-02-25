@@ -20,7 +20,7 @@ from basic.utils import variables_prep
 start_time = time.time()
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
 input_path = file_settings()[1]
-filename = f'{input_path}parameter-implement.csv'
+filename = f'{input_path}parameter.csv'
 variable = variables_prep(filename, product_uniform=False)
 index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
 
