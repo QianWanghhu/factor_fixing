@@ -6,15 +6,16 @@ import json
 from basic.utils import variables_prep  
 
 def file_settings():
-    model_dir = '../output/paper0915/'
-    model_ts_full = f'{model_dir}2000_2014_ave_annual.csv'
+    model_dir = '../output/test/'
+    input_dir = '../data/'
+    model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
-    param_dir = '../data/'
-    param_full = f'{param_dir}parameter-implement.csv'
-    param_reduced = f'{param_dir}parameter-adjust.csv'
+    
+    param_full = f'{input_dir}parameter-implement.csv'
+    param_reduced = f'{input_dir}parameter-adjust.csv'
     ranks_reduced_beta = f'{model_dir}partial_reduce_beta_552.json'
     ranks_reduced_uni = f'{model_dir}partial_reduce_params.json'
-    return [model_dir, param_dir, model_ts_full, model_ts_reduced, param_full, \
+    return [model_dir, input_dir, model_ts_full, model_ts_reduced, param_full, \
         param_reduced, ranks_reduced_beta, ranks_reduced_uni]
 # END file_settings()
 

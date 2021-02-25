@@ -51,7 +51,7 @@ def pce_fun(variable, samples, values, ntrain_samples, degree=2, boot_ind=None):
     return poly, error
 
 
-def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
+def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=None):
     """
     Function to train PCE and conduct boostrap.
     Parameters:
@@ -83,48 +83,36 @@ def fun(variable, samples, values, degree=2, nboot=500, ntrain_samples=None):
     index_cover = []
     # Cross-validation
     kf = KFold(n_splits=10)
-
-    for _ in range(nboot):
-        if nboot == 1:
-            I = np.arange(ntrain_samples)
-        else:
-            I = np.random.randint(0, ntrain_samples, ntrain_samples)
-        index_cover.append(np.unique(I).size / ntrain_samples)
-
-        train_samples = samples[:,I]
-        train_values = values[I]
-        x_cv = train_samples
-        y_cv = train_values
-
-        # start_validation = ntrain_samples
+    if nboot > 1:
+        for ii in range(nboot):
         
-        for train_index, test_index in kf.split(x_cv.T):
-            x_train, x_test = x_cv[:,train_index], x_cv[:,test_index]
-            y_train, y_test = y_cv[train_index], y_cv[test_index]
-            coef = least_squares(poly.basis_matrix,x_train,y_train)
+            index_cover.append(np.unique(I[ii]).size / ntrain_samples)
+
+            train_samples = samples[:, I[ii]]
+            train_values = values[I[ii]]
+            x_cv = train_samples
+            y_cv = train_values        
+            for train_index, test_index in kf.split(x_cv.T):
+                x_train, x_test = x_cv[:,train_index], x_cv[:,test_index]
+                y_train, y_test = y_cv[train_index], y_cv[test_index]
+                coef = least_squares(poly.basis_matrix,x_train,y_train)
+                poly.set_coefficients(coef)
+                approx_values = poly(x_test)
+                cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(train_values)
+                errors_cv.append(cv)
+
+
+            coef = least_squares(poly.basis_matrix,train_samples,train_values)
             poly.set_coefficients(coef)
-            approx_values = poly(x_test)
-            cv = np.linalg.norm(approx_values-y_test)/np.linalg.norm(train_values)
-            errors_cv.append(cv)
-
-
+            main_effect, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
+            total_indices.append(total_effect[:])
+            main_sensitivity.append(main_effect[:])
+        return errors_cv, main_sensitivity, total_indices, index_cover
+    else:
+        I = np.arange(ntrain_samples)
+        train_samples = samples[:, I]
+        train_values = values[I]
         coef = least_squares(poly.basis_matrix,train_samples,train_values)
         poly.set_coefficients(coef)
-
-
-        # validation_samples = samples[:,start_validation:]
-        # validation_values = values[start_validation:]
+        return poly
         
-        # approx_values = poly(validation_samples)        
-        # error = np.linalg.norm(approx_values-validation_values)/np.linalg.norm(values)
-
-        main_effect, total_effect = pya.get_main_and_total_effect_indices_from_pce(poly.get_coefficients(),poly.get_indices())
-
-        # errors_bt.append(error)
-        # condition_numbers.append(cond)
-        total_indices.append(total_effect[:])
-        main_sensitivity.append(main_effect[:])
-        if nboot == 1:
-            return poly, errors_cv, main_sensitivity, total_indices
-        else:
-            return errors_cv, main_sensitivity, total_indices, index_cover
