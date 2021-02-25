@@ -6,8 +6,8 @@ import json
 from basic.utils import variables_prep  
 
 def file_settings():
-    model_dir = '../output/test/'
-    input_dir = '../data/'
+    model_dir = 'output/test/'
+    input_dir = 'data/'
     model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
     
