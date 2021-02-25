@@ -5,19 +5,17 @@ import os
 import pyapprox as pya
 import SALib.sample.latin as latin
 from SALib.util import read_param_file
-import time
 
-from basic.boots_pya import fun, pce_fun
+from basic.boots_pya import fun
 from basic.utils import variables_prep, to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
-
-
 def fix_group_ranking(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, sample_range):
+    partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range):
 # Calculate the corresponding number of bootstrap with use of group_fix
     x_sample = latin.sample(problem, sample_range, seed=88).T
+    np.savetxt(f'{output_path}metric_samples.txt', x_sample)
     # if reduce parameters, change samples
     if (variable.num_vars()) == 11:
         x_sample = adjust_sampling(x_sample, index_product, x_fix)
@@ -26,14 +24,11 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
     rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
     ci_bounds = [0.025, 0.975]
 
-    start_time = time.time()
-    num_pce = 500
     for key, value in partial_order.items():
         pce_list = []; cv_temp = np.zeros(num_pce)
         y_temp = np.zeros(shape=(num_pce, x_sample.shape[1]))
         _, sample_size = key.split('_')[0], int(key.split('_')[1])
         print(f'------------------Training samples: {sample_size}------------------------')
-        seed = 222
         np.random.seed(seed)
         rand_pce = np.random.randint(0, sample_size, size=(num_pce, sample_size))
         for i in range(rand_pce.shape[0]):
@@ -51,7 +46,6 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
         error_dict[key], pool_res = group_fix(value, pce_list, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
     # End for
 
-    print("--- %s seconds ---" % (time.time() - start_time))
 
     # # separate confidence intervals into separate dicts and write results
     save_path = f'{output_path}error_measures/'
@@ -69,16 +63,15 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
 
 
 def fix_increase_sample(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, sample_range):
+    partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range):
 # if reduce parameters, change samples
     key = list(partial_order.keys())[0]
     _, sample_size = key.split('_')
     value = partial_order[key]
     poly_list = []
     poly = fun(variable, samples, values, 
-                degree=2, nboot=1, ntrain_samples=int(sample_size))
+                degree=2, nboot=num_pce, ntrain_samples=int(sample_size))
     poly_list.append(poly)
-    start_time = time.time()
     conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
     ci_bounds = [0.025, 0.975]
     nstart, nstop, nstep = sample_range
@@ -94,14 +87,12 @@ def fix_increase_sample(input_path, variable, output_path, samples, values,
         rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
         # add the calculation of y_uncond
         y_uncond_temp = poly(x_sample).T
-        # import pdb; pdb.set_trace()
         conf_uncond[str(n)] = uncond_cal(y_uncond_temp, ci_bounds, rand)
         conf_uncond[str(n)]['median'] = np.quantile(y_uncond_temp[0][rand], ci_bounds, axis=1).mean(axis=0).mean()
         conf_uncond[str(n)]['mean'] = poly.mean()[0]
         error_dict[str(n)], pool_res = group_fix(value, poly_list, x_sample, y_uncond_temp, 
                                         x_fix_adjust, rand, {}, file_exist=True)
         # End for
-    print("--- %s seconds ---" % (time.time() - start_time))
 
     # separate confidence intervals into separate dicts and write results
     save_path = f'{output_path}error_measures/'
