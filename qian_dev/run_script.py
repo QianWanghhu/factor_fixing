@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from SALib.util import read_param_file
 
-from basic.boots_pya import fun, pce_fun
+from basic.boots_pya import fun
 from basic.utils import variables_prep, to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify

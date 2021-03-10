@@ -20,7 +20,7 @@ def group_fix(partial_result, func, x, y_true, x_default,
     partial_result : dict,
         dictionary of parameter groups, results of partial sort
 
-    func : function,
+    func : list of function,
         function for analysis (analytical formula or model)
 
     x : np.array,
@@ -40,9 +40,6 @@ def group_fix(partial_result, func, x, y_true, x_default,
     pool_results : dict,
         Index of fixed parameters and the corresponding results
 
-    a : np.array (Default: None),
-        Coefficients used in `func`
-
     file_exist : bool (default: False), 
         If true, reads cached partial-ranking results from a file.
         Otherwise, calculates results.
@@ -51,35 +48,17 @@ def group_fix(partial_result, func, x, y_true, x_default,
     ----------
     Tuple of:
 
-    dict_return:
-        mae : dict, 
+    dict_return: dictionary of uncertainty measures
+        mae and the uncertain ranges: 
             Changes in absolute mean error of the func results due to fixing 
             parameters
 
-        var : dict, 
+        var and the uncertain ranges : 
             Changes in variance of the func results due to fixing parameters
 
-        ks : dict, 
+        ks measures and the uncertain ranges : 
             Changes in pearson correlation coefficients 
             of the func results due to fixing parameters
-
-        mae_lower : dict,
-            Lowest absolute MAE values
-
-        var_lower :  dict, 
-            Lowest variance
-
-        ppmc_lower :  dict,
-            Lowest PPMC
-
-        mae_upper :  dict,
-            Largest absolute MAE values
-
-        var_upper :  dict,
-            Largest variance values
-
-        ppmc_upper :  dict,
-            Largest PPMC values
 
     pool_results:
 
@@ -191,10 +170,11 @@ def error_measure(I, y_true, results_fix, conf_level):
             Function results with all x varying (the raw sampling matrix of x)
     result_fix : list,
             Conditional results with all some x fixed
+    conf_level: list, percentiles used to calculate the confidence intervals
 
     Returns:
     ----------
-    List, values of error measures
+    List, values of uncertainty measures
     """
     y_true_resample = y_true[I]
     results_fix_resample = results_fix[I]                
@@ -208,7 +188,12 @@ def uncond_cal(y_true, conf_level, rand):
     Calculate the unconditional results
     Parameters:
     ----------
-    partial_key: key of the partail_results
+    y_true : list,
+            Function results with all x varying (the raw sampling matrix of x)
+    conf_level: list, percentiles used to calculate the confidence intervals
+    rand : np.ndarray,
+        Resample index in bootstrap, shape of R * N, 
+        where R is the number of resamples
 
     Returns:
     ----------

@@ -69,5 +69,5 @@ def read_specify(data_type, param_type, product_uniform, num_vars=22):
             return read_ranks(filenames[6])
         else:
             return read_ranks(filenames[7])
-            
+# END read_specify()          
 
