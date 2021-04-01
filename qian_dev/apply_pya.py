@@ -7,7 +7,7 @@ import os
 import time
 from pyapprox.random_variable_algebra import product_of_independent_random_variables_pdf
 
-from basic.boots_pya import least_squares, fun
+from basic.boots_pya import least_squares, fun, fun_new
 from basic.partial_rank import partial_rank
 from basic.utils import variables_prep
 from basic.read_data import read_specify, file_settings
@@ -66,15 +66,58 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform):
     np.savez(f'{outpath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, index_cover = index_cover_all, total_effects=total_effects_all)
 
 
-def run_pya(outpath, nboot, seed, product_uniform=True):
+def pya_boot_sensitivity_new(outpath, nboot, seed, product_uniform, filename):
+
+    variable, _ = read_specify('parameter', 'reduced', product_uniform, num_vars=11)
+
+    len_params = variable.num_vars()
+    samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
+
+    # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
+    n_strat, n_end, n_step = [104, 552, 13]
+    errors_cv_all = {}
+    partial_results = {}
+    index_cover_all = {}
+    total_effects_all = {}
+    for i in range(n_strat, n_end+1, n_step):
+    # for i in n_list:
+        print(i)
+        if (n_end - i)  < n_step:
+            i = n_end
+        np.random.seed(seed)                                                    
+        errors_cv, _, total_effects = fun_new(
+            variable, samples[:, :i], values[:i], product_uniform, nboot=nboot)
+
+        # partial ranking
+        total_effects = np.array(total_effects)
+        sa_shape = list(total_effects.shape)[0:2]
+        total_effects = total_effects.reshape((sa_shape))
+        rankings = partial_rank(total_effects,len_params, conf_level=0.95)
+        partial_results[f'nsample_{i}'] = rankings
+        errors_cv_all[f'nsample_{i}'] = errors_cv
+        index_cover_all[f'nsample_{i}'] = np.nan # hack because I do not use this anymore
+        total_effects_all[f'nsample_{i}'] = total_effects
+    # End for
     if product_uniform == True:
         dist_type = 'beta'
     else:
         dist_type = 'uniform'
+    np.savez(f'{outpath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, index_cover = index_cover_all, total_effects=total_effects_all)
+
+
+def run_pya(outpath, nboot, seed, product_uniform):
+    if product_uniform == 'beta':
+        dist_type = 'beta'
+    elif product_uniform == 'exact':
+        dist_type = 'exact'
+    else:
+        dist_type = 'uniform'
     filename = f'adaptive-reduce-{dist_type}_552.npz'
 
+    print(f'{outpath}{filename}')
     if not os.path.exists(f'{outpath}{filename}'):
-        pya_boot_sensitivity(outpath, nboot, seed, product_uniform)
+        pya_boot_sensitivity_new(
+            outpath, nboot, seed, product_uniform, filename)
 
     fileread = np.load(f'{outpath}{filename}', allow_pickle=True)
     errors_cv = fileread[fileread.files[0]][()]
@@ -103,9 +146,10 @@ def pce_22(nboot, seed, ntrain_samples):
     # Used for PCE fitting
     np.random.seed(seed)
     rand_I = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples)) 
-    error_cv, _, total_effects, _ = fun(variable, samples, 
-                                        values, degree=2, nboot=nboot, I=rand_I,
-                                            ntrain_samples=ntrain_samples)                                          
+    error_cv, _, total_effects, = fun_new(
+        variable, samples[:,:ntrain_samples], 
+        values[:ntrain_samples], product_uniform=False,
+        nboot=nboot)                                          
     sa_df = sa_df_format(total_effects, variable, 
                     param_all, conf_level=0.95)
     sa_df.to_csv(f'{fpath_save}sa_pce_22.csv', index=True)

@@ -6,14 +6,16 @@ import pyapprox as pya
 import SALib.sample.latin as latin
 from SALib.util import read_param_file
 
-from basic.boots_pya import fun
+from basic.boots_pya import fun, fun_new
 from basic.utils import variables_prep, to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
 def fix_group_ranking(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range):
-# Calculate the corresponding number of bootstrap with use of group_fix
+                      partial_order, index_product, problem, x_fix,
+                      x_fix_adjust, num_pce, seed, sample_range,
+                      product_uniform):
+    # Calculate the corresponding number of bootstrap with use of group_fix
     x_sample = latin.sample(problem, sample_range, seed=88).T
     np.savetxt(f'{output_path}metric_samples.txt', x_sample)
     # if reduce parameters, change samples
@@ -21,7 +23,8 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
         x_sample = adjust_sampling(x_sample, index_product, x_fix)
 
     conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
-    rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
+    rand = np.random.randint(
+        0, x_sample.shape[1], size=(500, x_sample.shape[1]))
     ci_bounds = [0.025, 0.975]
 
     for key, value in partial_order.items():
@@ -30,10 +33,12 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
         _, sample_size = key.split('_')[0], int(key.split('_')[1])
         print(f'------------------Training samples: {sample_size}------------------------')
         np.random.seed(seed)
-        rand_pce = np.random.randint(0, sample_size, size=(num_pce, sample_size))
+        rand_pce = np.random.randint(
+            0, sample_size, size=(num_pce, sample_size))
         for i in range(rand_pce.shape[0]):
-            poly = fun(variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
-                degree=2, nboot=1, ntrain_samples=sample_size)
+            poly = fun_new(
+                variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
+                product_uniform, nboot=1)
         # add the calculation of y_uncond
             pce_list.append(poly)
             y_temp[i, :] = poly(x_sample).flatten()
@@ -63,14 +68,15 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
 
 
 def fix_increase_sample(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range):
+                        partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range, product_uniform):
 # if reduce parameters, change samples
     key = list(partial_order.keys())[0]
     _, sample_size = key.split('_')
     value = partial_order[key]
     poly_list = []
-    poly = fun(variable, samples, values, 
-                degree=2, nboot=num_pce, ntrain_samples=int(sample_size))
+    poly = fun_new(variable, samples[:, :int(sample_size)],
+                   values[:int(sample_size)], product_uniform,
+                   nboot=num_pce)
     poly_list.append(poly)
     conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
     ci_bounds = [0.025, 0.975]

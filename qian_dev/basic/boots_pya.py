@@ -43,7 +43,6 @@ def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=N
     sensitivity_indices: list, total effects for all the bootstraps
     """
     poly = pya.get_polynomial_from_variable(variable)
-    ## change the basis
     poly.set_indices(pya.compute_hyperbolic_indices(
         variable.num_vars(),degree))
 
@@ -55,7 +54,6 @@ def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=N
     index_cover = []
     # Cross-validation
     kf = KFold(n_splits=10)
-    # simplify --John
     if nboot > 1:
         for ii in range(nboot):
         
@@ -88,4 +86,116 @@ def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=N
         coef = least_squares(poly.basis_matrix,train_samples,train_values)
         poly.set_coefficients(coef)
         return poly
+
+
+from pyapprox.approximate import approximate
+from pyapprox.utilities import total_degree_space_dimension
+from scipy import stats
+from pyapprox.variable_transformations import AffineRandomVariableTransformation
+from pyapprox.multivariate_polynomials import PolynomialChaosExpansion
+from pyapprox.univariate_quadrature import gauss_jacobi_pts_wts_1D
+from pyapprox.variables import get_distribution_info
+def get_poly(variable, product_uniform):
+
+    if product_uniform != 'exact':
+        return pya.get_polynomial_from_variable(variable)
+    
+    from basic.read_data import file_settings
+    from basic.utils import variables_prep
+    input_path = file_settings()[1]
+    filename = file_settings()[4]
+    index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
+    full_variable = variables_prep(filename, product_uniform=False)
+    var_trans = AffineRandomVariableTransformation(
+        variable)
+    poly = PolynomialChaosExpansion()
+    basis_opts = dict()
+    identity_map_indices = []
+    cnt = 0
+    for ii in range(variable.nunique_vars):
+        rv = variable.unique_variables[ii]
+        name, scales, shapes = get_distribution_info(rv)
+        if (type(rv.dist) != stats._continuous_distns.beta_gen):
+            opts = {'rv_type': name, 'shapes': shapes,
+                    'var_nums': variable.unique_variable_indices[ii]}
+            basis_opts['basis%d' % ii] = opts
+            continue
+
+        identity_map_indices += variable.unique_variable_indices[ii]
         
+        def fun(x):
+            return x.prod(axis=0)
+        quad_rules = []
+        inds = index_product[cnt]
+        nquad_samples_1d = 50
+
+        for jj in range(len(inds)):
+            a, b = variable.all_variables()[jj].interval(1)
+            x, w = gauss_jacobi_pts_wts_1D(nquad_samples_1d, 0, 0)
+            x = (x+1)/2 # map to [0, 1]
+            x = (b-a)*x+a # map to [a,b]
+            quad_rules.append(x)
+        basis_opts['basis%d' % ii] = {'poly_type': 'function_indpnt_vars',
+                                      'var_nums': [ii], 'fun': fun,
+                                      'quad_rules': quad_rules}
+        cnt += 1
+        
+    poly_opts = {'var_trans': var_trans}
+    poly_opts['poly_types'] = basis_opts
+    poly.configure(poly_opts)
+    poly.var_trans.set_identity_maps(identity_map_indices)
+    return poly
+
+
+from pyapprox.indexing import compute_hyperbolic_indices
+def fun_new(variable, train_samples, train_values, product_uniform, nboot=10):
+    #TODO Need to pass in variables that make up product so I can construct
+    # quadrature rules
+
+    if nboot == 1:
+        indices = compute_hyperbolic_indices(variable.num_vars(), 2)
+        options = {'basis_type': 'fixed', 'variable': variable,
+                   'options': {'linear_solver_options': dict(),
+                               'indices': indices, 'solver_type': 'lstsq'}}
+        approx_res = approximate(
+            train_samples, train_values, 'polynomial_chaos', options)
+        return approx_res.approx
+
+    poly = get_poly(variable, product_uniform)
+    
+    nterms = total_degree_space_dimension(train_samples.shape[0], 2)
+
+    # Find best PCE basis
+    nfolds = 10
+    # solver_options = {'cv': nfolds}
+    # options = {'basis_type': 'expanding_basis', 'variable': variable,
+    #            'verbosity': 0, 'options': {'max_num_init_terms': nterms,
+    #            'linear_solver_options': solver_options}}
+    # approx_res = approximate(train_samples, train_values, 'polynomial_chaos', options)
+
+    # # Compute PCE on each fold using best PCE basis and least squares
+    # nfolds = min(nboot, train_samples.shape[1])
+    # linear_solver_options = [
+    #     {'alpha':approx_res.reg_params[ii]}
+    #     for ii in range(len(approx_res.reg_params))]
+    # indices = [approx_res.approx.indices[:, np.where(np.absolute(c)>0)[0]]
+    #            for c in approx_res.approx.coefficients.T]
+
+    # for now just use quadratic basis
+    indices = compute_hyperbolic_indices(variable.num_vars(), 2)
+    options = {'basis_type': 'fixed', 'variable': variable,
+               'options': {'linear_solver_options': dict(),
+                           'indices': indices, 'solver_type': 'lstsq'}}
+    
+    from pyapprox.approximate import cross_validate_approximation
+    approx_list, residues_list, cv_score = cross_validate_approximation(
+        train_samples, train_values, options, nfolds,
+        'polynomial_chaos', random_folds='sklearn')
+    pce_cv_total_effects = []
+    pce_cv_main_effects = []
+    for ii in range(nfolds):
+        pce_sa_res_ii = pya.analyze_sensitivity_polynomial_chaos(
+            approx_list[ii])
+        pce_cv_main_effects.append(pce_sa_res_ii.main_effects)
+        pce_cv_total_effects.append(pce_sa_res_ii.total_effects)
+    return cv_score, pce_cv_main_effects, pce_cv_total_effects

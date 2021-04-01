@@ -58,14 +58,14 @@ def read_specify(data_type, param_type, product_uniform, num_vars=22):
             return read_model_ts(filenames[3], num_vars)
     elif data_type == 'parameter':
         if param_type == 'full':
-            assert (product_uniform == False), 'product_uniform should be False when using full model.'
+            assert (product_uniform is False), 'product_uniform should be None when using full model.'
             assert (num_vars == 22), 'num_vars should be 22 when using full model.'
             return read_parameters(filenames[4], product_uniform)
         elif param_type == 'reduced':
             assert (num_vars == 11), 'num_vars should be 11 when using reduced model.'
             return read_parameters(filenames[5], product_uniform)
     else:
-        if product_uniform == True:
+        if product_uniform is not False:
             return read_ranks(filenames[6])
         else:
             return read_ranks(filenames[7])

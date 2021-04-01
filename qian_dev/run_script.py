@@ -23,13 +23,17 @@ model_ts_reduced()
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
 num_pce=10; seed=222
+# PCE with Exact product distributions
+print('--------PCE-E with increasing samples--------')
+run_pya(outpath, num_pce, seed, product_uniform='exact')
+
 # PCE with uniform distributions
 print('--------PCE-U with increasing samples--------')
-run_pya(outpath, num_pce, seed, product_uniform=False)
+run_pya(outpath, num_pce, seed, product_uniform='uniform')
 
 # PCE with Beta distributions
 print('--------PCE-B with increasing samples--------')
-run_pya(outpath, num_pce, seed, product_uniform=True)
+run_pya(outpath, num_pce, seed, product_uniform='beta')
 
 # PCE with 22 parameters
 print('----------------PCE-22----------------')
@@ -38,15 +42,21 @@ pce_22(num_pce, seed, 552)
 ##==============================##============================##
 # evaluate the uncertainty measures from fixing parameters
 # import variables and samples for PCE
+
+# change this to product_uniform='exact' to use new polynomials
+product_uniform = 'beta'
+
+
+
 input_path = file_settings()[1]
 variable, _ = read_specify('parameter', 'reduced', 
-    product_uniform=True, num_vars=11)
+    product_uniform=product_uniform, num_vars=11)
 output_path = file_settings()[0]
 samples, values = read_specify('model', 'reduced', 
     product_uniform=False, num_vars=11)
 # load partial order results
 rankings_all = read_specify('rank', 'reduced', 
-    product_uniform=True, num_vars=11)
+    product_uniform=product_uniform, num_vars=11)
 # import index_prodcut which is a array defining the correlations between parameters
 index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
 filename = f'{input_path}problem.txt'
@@ -59,24 +69,24 @@ if (variable.num_vars()) == 11:
 
 # Fixing parameters ranked by different PCEs 
 # and 1000 samples are used to calculate the uncertainty measures
-print('--------Calculate uncertainty measurs due to FF with PCE-B--------')
+print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
 key_use = [f'nsample_{ii}' for ii in np.arange(104, 131, 13)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_group_ranking(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 
-        num_pce, seed, sample_range[0])
+                  num_pce, seed, sample_range[0], product_uniform)
 
 ##==============================##============================##
 # Fixing parameters ranked by a PCE trained with 156 model runs 
 # and increasing samples are used to calculate the uncertainty measures
-print('--------Calculate uncertainty measurs due to FF with increasing samples and a PCE-B--------')
+print(f'--------Calculate uncertainty measures due to FF with increasing samples and a PCE-{product_uniform}--------')
 from error_fixing import fix_increase_sample
 key_use = [f'nsample_{ii}' for ii in [156]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
-        seed, sample_range)
+                    seed, sample_range, product_uniform)
 
 
 
