@@ -43,6 +43,7 @@ def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=N
     sensitivity_indices: list, total effects for all the bootstraps
     """
     poly = pya.get_polynomial_from_variable(variable)
+    ## change the basis
     poly.set_indices(pya.compute_hyperbolic_indices(
         variable.num_vars(),degree))
 
@@ -54,6 +55,7 @@ def fun(variable, samples, values, degree=2, nboot=500, I=None, ntrain_samples=N
     index_cover = []
     # Cross-validation
     kf = KFold(n_splits=10)
+    # simplify --John
     if nboot > 1:
         for ii in range(nboot):
         
