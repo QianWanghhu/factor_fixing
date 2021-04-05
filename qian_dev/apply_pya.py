@@ -44,9 +44,9 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform):
         np.random.seed(seed)                                                    
         rand_I = np.random.randint(0, i, size=(nboot, i))
         errors_cv, _, total_effects, index_cover = fun(variable, samples, 
-                                                    values, degree=2, 
-                                                    nboot=nboot, I=rand_I, 
-                                                    ntrain_samples=i)
+                                                       values, degree=2, 
+                                                       nboot=nboot, I=rand_I, 
+                                                       ntrain_samples=i)
 
         # partial ranking
         total_effects = np.array(total_effects)
@@ -79,13 +79,14 @@ def pya_boot_sensitivity_new(outpath, nboot, seed, product_uniform, filename):
     partial_results = {}
     index_cover_all = {}
     total_effects_all = {}
+    approx_list_all = {}
     for i in range(n_strat, n_end+1, n_step):
     # for i in n_list:
         print(i)
         if (n_end - i)  < n_step:
             i = n_end
         np.random.seed(seed)                                                    
-        errors_cv, _, total_effects = fun_new(
+        errors_cv, _, total_effects, approx_list = fun_new(
             variable, samples[:, :i], values[:i], product_uniform, nboot=nboot)
 
         # partial ranking
@@ -97,12 +98,15 @@ def pya_boot_sensitivity_new(outpath, nboot, seed, product_uniform, filename):
         errors_cv_all[f'nsample_{i}'] = errors_cv
         index_cover_all[f'nsample_{i}'] = np.nan # hack because I do not use this anymore
         total_effects_all[f'nsample_{i}'] = total_effects
+        approx_list_all[f'nsample_{i}'] = approx_list 
     # End for
     if product_uniform == True:
         dist_type = 'beta'
     else:
         dist_type = 'uniform'
     np.savez(f'{outpath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, index_cover = index_cover_all, total_effects=total_effects_all)
+    import pickle
+    pickle.dump(approx_list_all, open(f'{outpath}{filename[:-4]}-approx-list.pkl', "wb"))
 
 
 def run_pya(outpath, nboot, seed, product_uniform):
@@ -140,13 +144,15 @@ def run_pya(outpath, nboot, seed, product_uniform):
 
 def pce_22(nboot, seed, ntrain_samples):
     fpath_save = file_settings()[0]
+    if os.path.exists(f'{fpath_save}sa_pce_22.csv'):
+        return
     samples, values = read_specify('model', 'full', product_uniform=False, num_vars=22)
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
     variable, param_all = read_specify('parameter', 'full', product_uniform=False, num_vars=22)
     # Used for PCE fitting
     np.random.seed(seed)
     rand_I = np.random.randint(0, ntrain_samples, size=(nboot, ntrain_samples)) 
-    error_cv, _, total_effects, = fun_new(
+    error_cv, _, total_effects, _ = fun_new(
         variable, samples[:,:ntrain_samples], 
         values[:ntrain_samples], product_uniform=False,
         nboot=nboot)                                          

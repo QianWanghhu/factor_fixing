@@ -23,6 +23,8 @@ model_ts_reduced()
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
 num_pce=10; seed=222
+# fun_new num folds set to max(num_pce, ntrain_samples)
+# so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
 print('--------PCE-E with increasing samples--------')
 run_pya(outpath, num_pce, seed, product_uniform='exact')
@@ -73,9 +75,17 @@ print(f'--------Calculate uncertainty measures due to FF with PCE-{product_unifo
 from error_fixing import fix_group_ranking
 key_use = [f'nsample_{ii}' for ii in np.arange(104, 131, 13)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
+if product_uniform == 'beta':
+    dist_type = 'beta'
+elif product_uniform == 'exact':
+    dist_type = 'exact'
+else:
+    dist_type = 'uniform'
+filename = f'adaptive-reduce-{dist_type}_552'
+
 fix_group_ranking(input_path, variable, output_path, samples, values,
-    partial_order, index_product, problem, x_fix, x_fix_adjust, 
-                  num_pce, seed, sample_range[0], product_uniform)
+                  partial_order, index_product, problem, x_fix, x_fix_adjust, 
+                  num_pce, seed, sample_range[0], product_uniform, filename)
 
 ##==============================##============================##
 # Fixing parameters ranked by a PCE trained with 156 model runs 

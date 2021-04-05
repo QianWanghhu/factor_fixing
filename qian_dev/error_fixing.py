@@ -14,7 +14,7 @@ from basic.read_data import file_settings, read_specify
 def fix_group_ranking(input_path, variable, output_path, samples, values,
                       partial_order, index_product, problem, x_fix,
                       x_fix_adjust, num_pce, seed, sample_range,
-                      product_uniform):
+                      product_uniform, filename):
     # Calculate the corresponding number of bootstrap with use of group_fix
     x_sample = latin.sample(problem, sample_range, seed=88).T
     np.savetxt(f'{output_path}metric_samples.txt', x_sample)
@@ -27,28 +27,46 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
         0, x_sample.shape[1], size=(500, x_sample.shape[1]))
     ci_bounds = [0.025, 0.975]
 
+    import pickle
+    approx_list_all = pickle.load(
+        open(f'{output_path}{filename}-approx-list.pkl', "rb"))
     for key, value in partial_order.items():
-        pce_list = []; cv_temp = np.zeros(num_pce)
+        print(key, value)
+        #pce_list = []
+        pce_list = approx_list_all[key]
+        num_pce = len(pce_list)
+        cv_temp = np.zeros(num_pce)
         y_temp = np.zeros(shape=(num_pce, x_sample.shape[1]))
         _, sample_size = key.split('_')[0], int(key.split('_')[1])
+        #from pyapprox.utilities import get_random_k_fold_sample_indices
+        
         print(f'------------------Training samples: {sample_size}------------------------')
-        np.random.seed(seed)
-        rand_pce = np.random.randint(
-            0, sample_size, size=(num_pce, sample_size))
-        for i in range(rand_pce.shape[0]):
-            poly = fun_new(
-                variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
-                product_uniform, nboot=1)
-        # add the calculation of y_uncond
-            pce_list.append(poly)
+        # np.random.seed(seed)
+        # rand_pce = np.random.randint(
+        #     0, sample_size, size=(num_pce, sample_size))
+        # for i in range(rand_pce.shape[0]):
+        #     poly = fun_new(
+        #         variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
+        #         product_uniform, nboot=1)
+        # # add the calculation of y_uncond
+        #     pce_list.append(poly)
+        #     y_temp[i, :] = poly(x_sample).flatten()
+        #     cv_temp[i] = np.sqrt(poly.variance())[0] / poly.mean()[0]
+        for i in range(num_pce):
+            poly = pce_list[i]
             y_temp[i, :] = poly(x_sample).flatten()
             cv_temp[i] = np.sqrt(poly.variance())[0] / poly.mean()[0]
+            
         y_uncond[key] = y_temp
+        # Note Now this does not use the same cross validation folds
+        # as used to build the PCE but this should be ok
         conf_uncond[key] = uncond_cal(y_uncond[key], ci_bounds, rand)
         conf_uncond[key]['cv'] = cv_temp[i].mean()
         conf_uncond[key]['cv_low'], conf_uncond[key]['cv_up'] = \
             np.quantile(cv_temp, ci_bounds)
-        error_dict[key], pool_res = group_fix(value, pce_list, x_sample, y_uncond[key], x_fix_adjust, rand, {}, file_exist=True)
+        error_dict[key], pool_res = group_fix(
+            value, pce_list, x_sample, y_uncond[key], x_fix_adjust, rand, {},
+            file_exist=True)
     # End for
 
 
