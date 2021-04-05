@@ -95,10 +95,16 @@ from pyapprox.variable_transformations import AffineRandomVariableTransformation
 from pyapprox.multivariate_polynomials import PolynomialChaosExpansion
 from pyapprox.univariate_quadrature import gauss_jacobi_pts_wts_1D
 from pyapprox.variables import get_distribution_info
-def get_poly(variable, product_uniform):
+def identity_fun(x):
+    return x
+
+def get_poly_opts(variable, product_uniform):
 
     if product_uniform != 'exact':
-        return pya.get_polynomial_from_variable(variable)
+        var_trans = AffineRandomVariableTransformation(
+            variable)
+        poly_opts = define_poly_options_from_variable_transformation(var_trans)
+        return poly_opts, var_trans
     
     from basic.read_data import file_settings
     from basic.utils import variables_prep
@@ -123,50 +129,51 @@ def get_poly(variable, product_uniform):
 
         identity_map_indices += variable.unique_variable_indices[ii]
         
-        def fun(x):
-            return x.prod(axis=0)
         quad_rules = []
         inds = index_product[cnt]
         nquad_samples_1d = 50
 
-        for jj in range(len(inds)):
-            a, b = variable.all_variables()[jj].interval(1)
+        for jj in inds:
+            a, b = full_variable.all_variables()[jj].interval(1)
             x, w = gauss_jacobi_pts_wts_1D(nquad_samples_1d, 0, 0)
             x = (x+1)/2 # map to [0, 1]
             x = (b-a)*x+a # map to [a,b]
-            quad_rules.append(x)
-        basis_opts['basis%d' % ii] = {'poly_type': 'function_indpnt_vars',
-                                      'var_nums': [ii], 'fun': fun,
+            quad_rules.append((x, w))
+        funs = [identity_fun]*len(inds)
+        basis_opts['basis%d' % ii] = {'poly_type': 'product_indpnt_vars',
+                                      'var_nums': [ii], 'funs': funs,
                                       'quad_rules': quad_rules}
         cnt += 1
         
     poly_opts = {'var_trans': var_trans}
     poly_opts['poly_types'] = basis_opts
-    poly.configure(poly_opts)
-    poly.var_trans.set_identity_maps(identity_map_indices)
-    return poly
+    var_trans.set_identity_maps(identity_map_indices)
+    return poly_opts, var_trans
 
 
 from pyapprox.indexing import compute_hyperbolic_indices
+from pyapprox.multivariate_polynomials import \
+        define_poly_options_from_variable_transformation
 def fun_new(variable, train_samples, train_values, product_uniform, nboot=10):
     #TODO Need to pass in variables that make up product so I can construct
     # quadrature rules
 
+    poly_opts, var_trans = get_poly_opts(variable, product_uniform)
+
     if nboot == 1:
         indices = compute_hyperbolic_indices(variable.num_vars(), 2)
         options = {'basis_type': 'fixed', 'variable': variable,
+                   'poly_opts': poly_opts,
                    'options': {'linear_solver_options': dict(),
                                'indices': indices, 'solver_type': 'lstsq'}}
         approx_res = approximate(
             train_samples, train_values, 'polynomial_chaos', options)
         return approx_res.approx
-
-    poly = get_poly(variable, product_uniform)
     
     nterms = total_degree_space_dimension(train_samples.shape[0], 2)
 
     # Find best PCE basis
-    nfolds = 10
+    nfolds = min(nboot, train_samples.shape[1])
     # solver_options = {'cv': nfolds}
     # options = {'basis_type': 'expanding_basis', 'variable': variable,
     #            'verbosity': 0, 'options': {'max_num_init_terms': nterms,
@@ -184,10 +191,13 @@ def fun_new(variable, train_samples, train_values, product_uniform, nboot=10):
     # for now just use quadratic basis
     indices = compute_hyperbolic_indices(variable.num_vars(), 2)
     options = {'basis_type': 'fixed', 'variable': variable,
+               'poly_opts': poly_opts,
                'options': {'linear_solver_options': dict(),
                            'indices': indices, 'solver_type': 'lstsq'}}
-    
     from pyapprox.approximate import cross_validate_approximation
+    # this does not use fast leave many out cross validation for least squares
+    # (which is used by approximate because that function does not return
+    # all the approximations on each fold
     approx_list, residues_list, cv_score = cross_validate_approximation(
         train_samples, train_values, options, nfolds,
         'polynomial_chaos', random_folds='sklearn')
@@ -198,4 +208,4 @@ def fun_new(variable, train_samples, train_values, product_uniform, nboot=10):
             approx_list[ii])
         pce_cv_main_effects.append(pce_sa_res_ii.main_effects)
         pce_cv_total_effects.append(pce_sa_res_ii.total_effects)
-    return cv_score, pce_cv_main_effects, pce_cv_total_effects
+    return cv_score, pce_cv_main_effects, pce_cv_total_effects, approx_list
