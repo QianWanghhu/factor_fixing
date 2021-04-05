@@ -98,7 +98,7 @@ def variables_prep(filename, product_uniform=False, dummy=False):
 
     """
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-    if product_uniform is False:    
+    if (product_uniform is False) or (product_uniform == 'uniform'):    
         ranges = np.loadtxt(
             filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
         univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(0, ranges.shape[0]//2)]
