@@ -6,8 +6,8 @@ import pyapprox as pya
 import SALib.sample.latin as latin
 from SALib.util import read_param_file
 
-from basic.boots_pya import fun, fun_new
-from basic.utils import variables_prep, to_df, adjust_sampling
+from basic.boots_pya import fun
+from basic.utils import to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
@@ -40,18 +40,7 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
         _, sample_size = key.split('_')[0], int(key.split('_')[1])
         #from pyapprox.utilities import get_random_k_fold_sample_indices
         
-        print(f'------------------Training samples: {sample_size}------------------------')
-        # np.random.seed(seed)
-        # rand_pce = np.random.randint(
-        #     0, sample_size, size=(num_pce, sample_size))
-        # for i in range(rand_pce.shape[0]):
-        #     poly = fun_new(
-        #         variable, samples[:, rand_pce[i]], values[rand_pce[i]], 
-        #         product_uniform, nboot=1)
-        # # add the calculation of y_uncond
-        #     pce_list.append(poly)
-        #     y_temp[i, :] = poly(x_sample).flatten()
-        #     cv_temp[i] = np.sqrt(poly.variance())[0] / poly.mean()[0]
+        print(f'------------Training samples: {sample_size}--------------')
         for i in range(num_pce):
             poly = pce_list[i]
             y_temp[i, :] = poly(x_sample).flatten()
@@ -69,7 +58,6 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
             file_exist=True)
     # End for
 
-
     # # separate confidence intervals into separate dicts and write results
     save_path = f'{output_path}error_measures/'
     if not os.path.exists(save_path): os.mkdir(save_path)
@@ -86,16 +74,16 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
 
 
 def fix_increase_sample(input_path, variable, output_path, samples, values,
-                        partial_order, index_product, problem, x_fix, x_fix_adjust, num_pce, seed, sample_range, product_uniform):
+                        partial_order, index_product, problem, x_fix, x_fix_adjust, 
+                            num_pce, seed, sample_range, product_uniform, filename):
 # if reduce parameters, change samples
     key = list(partial_order.keys())[0]
     _, sample_size = key.split('_')
     value = partial_order[key]
-    poly_list = []
-    poly = fun_new(variable, samples[:, :int(sample_size)],
-                   values[:int(sample_size)], product_uniform,
-                   nboot=num_pce)
-    poly_list.append(poly)
+    import pickle
+    approx_list_all = pickle.load(
+        open(f'{output_path}{filename}-approx-list.pkl', "rb"))
+    poly_list = [approx_list_all[key][0]]
     conf_uncond, error_dict, pool_res, y_uncond = {}, {}, {}, {}
     ci_bounds = [0.025, 0.975]
     nstart, nstop, nstep = sample_range
