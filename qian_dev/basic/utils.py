@@ -84,46 +84,6 @@ def epsi_cal(x, y):
 
     return epsi, y_ave
 
-def variables_prep(filename, product_uniform=False, dummy=False):
-    """
-    Help function for preparing the data training data to fit PCE.
-    Parameters:
-    ===========
-    filename : str
-    product_uniform : False do not colapse product into one variable
-                      'uniform' uniform distributions are used for product; 
-                      'beta', beta distributions are used for variables which 
-                      are adapted considering the correlations
-                      'exact' the true PDF of the product is used
-
-    """
-    # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-    if (product_uniform is False) or (product_uniform == 'uniform'):    
-        ranges = np.loadtxt(
-            filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
-        univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(0, ranges.shape[0]//2)]
-    else:
-        param_adjust = pd.read_csv(filename)
-        beta_index = param_adjust[param_adjust['distribution']== 'beta'].index.to_list()
-        ranges = np.array(param_adjust.loc[:, ['min','max']])
-        ranges[:, 1] = ranges[:, 1] - ranges[:, 0]
-        # param_names = param_adjust.loc[[0, 2, 8], 'Veneer_name'].values
-        univariate_variables = []
-        for ii in range(param_adjust.shape[0]):
-            if ii in beta_index:
-                shape_ab = param_adjust.loc[ii, ['a','b']].values.astype('float')
-                univariate_variables.append(beta(shape_ab[0], shape_ab[1], 
-                                            loc=ranges[ii][0], scale=ranges[ii][1]))
-            else:
-                # uniform_args = ranges[ii]
-                univariate_variables.append(uniform(ranges[ii][0], ranges[ii][1]))
-            # End if
-    if dummy == True: univariate_variables.append(uniform(0, 1))
-    # import pdb
-    # pdb.set_trace()
-    variable = pya.IndependentMultivariateRandomVariable(univariate_variables)
-    return variable
-        # End for()
 
 def adjust_sampling(x_sample, index_product, x_fix):
     samples_adjust = np.copy(x_sample)
@@ -138,3 +98,14 @@ def adjust_sampling(x_sample, index_product, x_fix):
     # x_fix = np.delete(x_fix, pars_delete, axis=0)
     x_sample = samples_adjust
     return x_sample
+
+def sa_df_format(total_effects, variables, param_names, conf_level=0.95):    
+    sa_df = pd.DataFrame(data=np.zeros(shape=(variables.num_vars(), 3)), 
+                        columns=['ST', 'ST_conf_lower', 'ST_conf_upper'])
+    total_effects = np.array(total_effects)
+    sa_df.loc[:, 'ST'] = total_effects.mean(axis=0)
+    sa_df.loc[:, 'ST_conf_lower'] = np.quantile(total_effects, [0.025], axis=0)[0]
+    sa_df.loc[:, 'ST_conf_upper' ] = np.quantile(total_effects, [0.975], axis=0)[0]
+    sa_df.index = param_names
+    return sa_df
+# End df_format()
