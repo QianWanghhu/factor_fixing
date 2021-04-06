@@ -8,7 +8,7 @@ import numpy as np
 from SALib.util import read_param_file
 
 from basic.boots_pya import fun
-from basic.utils import variables_prep, to_df, adjust_sampling
+from basic.utils import to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
@@ -22,8 +22,8 @@ model_ts_reduced()
 # apply_pya to produce the sensitivities of parameters for different PCEs
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
-num_pce=10; seed=222
-# fun_new num folds set to max(num_pce, ntrain_samples)
+num_pce=100; seed=222
+# fun num folds set to max(num_pce, ntrain_samples)
 # so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
 print('--------PCE-E with increasing samples--------')
@@ -47,8 +47,6 @@ pce_22(num_pce, seed, 552)
 
 # change this to product_uniform='exact' to use new polynomials
 product_uniform = 'beta'
-
-
 
 input_path = file_settings()[1]
 variable, _ = read_specify('parameter', 'reduced', 
@@ -96,7 +94,7 @@ key_use = [f'nsample_{ii}' for ii in [156]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
-                    seed, sample_range, product_uniform)
+                    seed, sample_range, product_uniform, filename)
 
 
 
