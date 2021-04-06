@@ -90,13 +90,17 @@ def variables_prep(filename, product_uniform=False, dummy=False):
     Parameters:
     ===========
     filename : str
-    product_uniform : Bool, if false, uniform distributions are used; 
-                    else, beta distributions are used for variables which are adapted considering the correlations
+    product_uniform : False do not colapse product into one variable
+                      'uniform' uniform distributions are used for product; 
+                      'beta', beta distributions are used for variables which 
+                      are adapted considering the correlations
+                      'exact' the true PDF of the product is used
 
     """
     # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
-    if product_uniform == False:    
-        ranges = np.loadtxt(filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
+    if (product_uniform is False) or (product_uniform == 'uniform'):    
+        ranges = np.loadtxt(
+            filename,delimiter=",",usecols=[2,3],skiprows=1).flatten()
         univariate_variables = [uniform(ranges[2*ii],ranges[2*ii+1]-ranges[2*ii]) for ii in range(0, ranges.shape[0]//2)]
     else:
         param_adjust = pd.read_csv(filename)
