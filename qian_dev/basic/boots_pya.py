@@ -123,7 +123,6 @@ def get_poly_opts(variable, product_uniform):
         
         rv = variable.unique_variables[ii]
         name, scales, shapes = get_distribution_info(rv)
-        print(ii, f'__ {name}')
         if (type(rv.dist) != stats._continuous_distns.beta_gen):
             opts = {'rv_type': name, 'shapes': shapes,
                     'var_nums': variable.unique_variable_indices[ii]}
