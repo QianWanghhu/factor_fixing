@@ -118,16 +118,19 @@ def get_poly_opts(variable, product_uniform):
     basis_opts = dict()
     identity_map_indices = []
     cnt = 0
+    # import pdb; pdb.set_trace()
     for ii in range(variable.nunique_vars):
+        
         rv = variable.unique_variables[ii]
         name, scales, shapes = get_distribution_info(rv)
+        print(ii, f'__ {name}')
         if (type(rv.dist) != stats._continuous_distns.beta_gen):
             opts = {'rv_type': name, 'shapes': shapes,
                     'var_nums': variable.unique_variable_indices[ii]}
             basis_opts['basis%d' % ii] = opts
             continue
 
-        identity_map_indices += variable.unique_variable_indices[ii]
+        identity_map_indices += list(variable.unique_variable_indices[ii])
         
         quad_rules = []
         inds = index_product[cnt]
