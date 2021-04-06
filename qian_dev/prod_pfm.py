@@ -33,7 +33,7 @@ var_trans = AffineRandomVariableTransformation(variable)
 
 # generate samples and values for training and comparison
 samples = pya.generate_independent_random_samples(variable, 10000)
-values = np.array([[fun_prod(*ii)] for ii in samples.T])
+values = np.array([[fun_prod(*ii)] for ii in (samples.T)])
 index_product = [[0, 1], [3, 4, 5]]
 samples_adjust = np.zeros((3, samples.shape[1]))
 samples_adjust[0, :] = np.prod(samples[index_product[0], :], axis=0)
