@@ -15,7 +15,7 @@ import os
 rc("text", usetex=False)
 from basic.read_data import file_settings, read_specify
 
-from basic.utils import variables_prep
+from basic.read_data import variables_prep
 
 start_time = time.time()
 # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices

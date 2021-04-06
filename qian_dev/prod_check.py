@@ -14,8 +14,8 @@ from pyapprox.multivariate_polynomials import \
         define_poly_options_from_variable_transformation, AffineRandomVariableTransformation
 from pyapprox.variables import IndependentMultivariateRandomVariable
 
-from basic.boots_pya import fun_new
-from basic.utils import variables_prep, to_df, adjust_sampling
+from basic.boots_pya import fun
+from basic.utils import to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
@@ -40,7 +40,7 @@ def pmf_check(product_uniform = False):
         if (n_end - i)  < n_step:
             i = n_end
         np.random.seed(seed)                                                    
-        approx_list_all[f'nsample_{i}'] = fun_new(variable, samples[:, :i], values[:i], product_uniform, nboot=1)
+        approx_list_all[f'nsample_{i}'] = fun(variable, samples[:, :i], values[:i], product_uniform, nboot=1)
     for key, pce in approx_list_all.items():
         mean_list[key], variance_list[key] = pce.mean(), pce.variance()
     pmf_stat = pd.concat([pd.DataFrame.from_dict(mean_list).T, \

@@ -6,7 +6,7 @@ from SALib.util import read_param_file
 import time
 
 from basic.boots_pya import fun
-from basic.utils import variables_prep, to_df, adjust_sampling
+from basic.utils import to_df, adjust_sampling
 from basic.group_fix import group_fix, uncond_cal
 from basic.read_data import file_settings, read_specify
 
