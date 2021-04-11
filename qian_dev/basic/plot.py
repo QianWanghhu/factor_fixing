@@ -45,11 +45,3 @@ def short_name(df):
         df.loc[ii, 'short_name'] = name_df[name_df.Veneer_name == df.Parameters[ii]]['short_name'].values 
     return df
 # End short_name()
-
-def df_read(fpath, fname, result_type, type_num):
-    df = pd.read_csv(f'{fpath}{fname}')
-    df.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
-    df['Type'] = result_type
-    df['Type_num'] = type_num
-    return df
-# End df_read()
