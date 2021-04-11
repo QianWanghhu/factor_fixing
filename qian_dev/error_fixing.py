@@ -59,7 +59,7 @@ def fix_group_ranking(input_path, variable, output_path, samples, values,
     # End for
 
     # # separate confidence intervals into separate dicts and write results
-    save_path = f'{output_path}error_measures/'
+    save_path = f'{output_path}{product_uniform}/'
     if not os.path.exists(save_path): os.mkdir(save_path)
     # convert the result into dataframe
     key_outer = list(error_dict.keys())
@@ -98,16 +98,16 @@ def fix_increase_sample(input_path, variable, output_path, samples, values,
         # Calculate the corresponding number of bootstrap with use pf group_fix
         rand = np.random.randint(0, x_sample.shape[1], size=(500, x_sample.shape[1]))
         # add the calculation of y_uncond
-        y_uncond_temp = poly(x_sample).T
+        y_uncond_temp = poly_list[0](x_sample).T
         conf_uncond[str(n)] = uncond_cal(y_uncond_temp, ci_bounds, rand)
         conf_uncond[str(n)]['median'] = np.quantile(y_uncond_temp[0][rand], ci_bounds, axis=1).mean(axis=0).mean()
-        conf_uncond[str(n)]['mean'] = poly.mean()[0]
+        conf_uncond[str(n)]['mean'] = poly_list[0].mean()[0]
         error_dict[str(n)], pool_res = group_fix(value, poly_list, x_sample, y_uncond_temp, 
                                         x_fix_adjust, rand, {}, file_exist=True)
         # End for
 
     # separate confidence intervals into separate dicts and write results
-    save_path = f'{output_path}error_measures/'
+    save_path = f'{output_path}{product_uniform}/'
     if not os.path.exists(save_path): os.mkdir(save_path)
     # convert the result into dataframe
     key_outer = list(error_dict.keys())
