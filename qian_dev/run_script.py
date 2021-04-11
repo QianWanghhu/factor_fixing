@@ -22,7 +22,7 @@ model_ts_reduced()
 # apply_pya to produce the sensitivities of parameters for different PCEs
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
-num_pce=100; seed=222
+num_pce=np.inf; seed=222
 # fun num folds set to max(num_pce, ntrain_samples)
 # so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
@@ -46,7 +46,7 @@ pce_22(num_pce, seed, 552)
 # import variables and samples for PCE
 
 # change this to product_uniform='exact' to use new polynomials
-product_uniform = 'beta'
+product_uniform = 'exact'
 
 input_path = file_settings()[1]
 variable, _ = read_specify('parameter', 'reduced', 
@@ -62,7 +62,7 @@ index_product = np.load(f'{input_path}index_product.npy', allow_pickle=True)
 filename = f'{input_path}problem.txt'
 problem = read_param_file(filename, delimiter=',')
 x_fix = np.array(problem['bounds']).mean(axis=1).reshape((problem['num_vars'], 1))
-sample_range = [1000, 2000, 500]
+sample_range = [1000, 10000, 500]
 # if reduce parameters, change samples
 if (variable.num_vars()) == 11:
     x_fix_adjust = adjust_sampling(x_fix, index_product, x_fix)
@@ -71,7 +71,7 @@ if (variable.num_vars()) == 11:
 # and 1000 samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
-key_use = [f'nsample_{ii}' for ii in np.arange(104, 131, 13)]
+key_use = [f'nsample_{ii}' for ii in np.arange(104, 178, 13)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 if product_uniform == 'beta':
     dist_type = 'beta'
@@ -82,8 +82,8 @@ else:
 filename = f'adaptive-reduce-{dist_type}_552'
 
 fix_group_ranking(input_path, variable, output_path, samples, values,
-                  partial_order, index_product, problem, x_fix, x_fix_adjust, 
-                  num_pce, seed, sample_range[0], product_uniform, filename)
+    partial_order, index_product, problem, x_fix, x_fix_adjust, 
+        num_pce, seed, sample_range[0], product_uniform, filename)
 
 ##==============================##============================##
 # Fixing parameters ranked by a PCE trained with 156 model runs 
@@ -94,7 +94,5 @@ key_use = [f'nsample_{ii}' for ii in [156]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
-                    seed, sample_range, product_uniform, filename)
-
-
+            seed, sample_range, product_uniform, filename)
 
