@@ -1,3 +1,4 @@
+#!/usr/bin/env ffexplore
 import numpy as np
 import pandas as pd
 import pyapprox as pya
@@ -20,11 +21,13 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
     len_params = variable.num_vars()
     samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_step = [104, 552, 13]
+    n_strat, n_end, n_step = [160, 500, 10]
+    n_list = [*np.arange(n_strat, n_end+1, n_step), 552]
     errors_cv_all = {}
     partial_results = {}
     total_effects_all = {}
     approx_list_all = {}
+    error_best = values.flatten().std()
     for i in range(n_strat, n_end+1, n_step):
     # for i in n_list:
         if (n_end - i)  < n_step:
@@ -42,8 +45,15 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
         errors_cv_all[f'nsample_{i}'] = errors_cv
         total_effects_all[f'nsample_{i}'] = total_effects
         approx_list_all[f'nsample_{i}'] = approx_list 
+        print(f'error_cv: {errors_cv.mean()}')
     # End for
-
+        # if error_best < errors_cv.mean(): 
+        #     k += 1
+        # else:
+        #     error_best = errors_cv.mean()
+        #     k = 0
+        # print(k, i)
+        # if k == 2: break
     np.savez(f'{outpath}{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, total_effects=total_effects_all)
     import pickle
     pickle.dump(approx_list_all, open(f'{outpath}{filename[:-4]}-approx-list.pkl', "wb"))

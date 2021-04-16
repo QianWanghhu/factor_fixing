@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env ffexplore
 import numpy as np
 import pyapprox as pya
 from scipy.stats import uniform
@@ -76,9 +76,6 @@ from pyapprox.indexing import compute_hyperbolic_indices
 from pyapprox.multivariate_polynomials import \
         define_poly_options_from_variable_transformation
 def fun(variable, train_samples, train_values, product_uniform, nboot=10):
-    #TODO Need to pass in variables that make up product so I can construct
-    # quadrature rules
-
     poly_opts, var_trans = get_poly_opts(variable, product_uniform)
 
     if nboot == 1:
@@ -95,22 +92,22 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
 
     # Find best PCE basis
     nfolds = min(nboot, train_samples.shape[1])
-    # solver_options = {'cv': nfolds}
-    # options = {'basis_type': 'expanding_basis', 'variable': variable,
-    #            'verbosity': 0, 'options': {'max_num_init_terms': nterms,
-    #            'linear_solver_options': solver_options}}
-    # approx_res = approximate(train_samples, train_values, 'polynomial_chaos', options)
+    solver_options = {'cv': nfolds}
+    options = {'basis_type': 'expanding_basis', 'variable': variable,
+               'verbosity': 0, 'poly_opts': poly_opts,
+                'options': {'max_num_init_terms': nterms,
+               'linear_solver_options': solver_options}}
+    approx_res = approximate(train_samples, train_values, 'polynomial_chaos', options)
 
-    # # Compute PCE on each fold using best PCE basis and least squares
-    # nfolds = min(nboot, train_samples.shape[1])
-    # linear_solver_options = [
-    #     {'alpha':approx_res.reg_params[ii]}
-    #     for ii in range(len(approx_res.reg_params))]
-    # indices = [approx_res.approx.indices[:, np.where(np.absolute(c)>0)[0]]
-    #            for c in approx_res.approx.coefficients.T]
+    # Compute PCE on each fold using best PCE basis and least squares
+    linear_solver_options = [
+        {'alpha':approx_res.reg_params[ii]}
+        for ii in range(len(approx_res.reg_params))]
+    indices = [approx_res.approx.indices[:, np.where(np.absolute(c)>0)[0]]
+               for c in approx_res.approx.coefficients.T]
 
     # for now just use quadratic basis
-    indices = compute_hyperbolic_indices(variable.num_vars(), 2)
+    # indices = compute_hyperbolic_indices(variable.num_vars(), 2) # comment out for basis selection
     options = {'basis_type': 'fixed', 'variable': variable,
                'poly_opts': poly_opts,
                'options': {'linear_solver_options': dict(),
@@ -119,6 +116,8 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     # this does not use fast leave many out cross validation for least squares
     # (which is used by approximate because that function does not return
     # all the approximations on each fold
+    
+    # error occurred in the following line 
     approx_list, residues_list, cv_score = cross_validate_approximation(
         train_samples, train_values, options, nfolds,
         'polynomial_chaos', random_folds='sklearn')
