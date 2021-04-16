@@ -22,8 +22,8 @@ model_ts_reduced()
 # apply_pya to produce the sensitivities of parameters for different PCEs
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
-num_pce=np.inf; seed=222
-# fun num folds set to max(num_pce, ntrain_samples)
+num_pce=np.inf; seed=888
+# fun num folds set to min(num_pce, ntrain_samples)
 # so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
 print('--------PCE-E with increasing samples--------')
@@ -71,7 +71,7 @@ if (variable.num_vars()) == 11:
 # and 1000 samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
-key_use = [f'nsample_{ii}' for ii in np.arange(104, 178, 13)]
+key_use = [f'nsample_{ii}' for ii in np.arange(50, 100, 10)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 if product_uniform == 'beta':
     dist_type = 'beta'
@@ -96,3 +96,18 @@ fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
             seed, sample_range, product_uniform, filename)
 
+
+
+### test##
+import pickle
+
+# output_path = '../output/adaptive/50_200/'
+output_path = '../output/test/'
+approx_list_all = pickle.load(
+        open(f'{output_path}{filename}-approx-list.pkl', "rb"))
+
+pce_list = approx_list_all['nsample_156']
+y_pce = pce_list[0](samples[:, 200:])
+rmse = np.std(values.flatten()[200:] - y_pce.flatten())
+std_true = np.std(values.flatten())
+rmse/std_true
