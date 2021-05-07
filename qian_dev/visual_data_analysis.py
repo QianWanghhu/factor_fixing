@@ -29,21 +29,21 @@ def df_read(df, result_type, type_num):
     return df
 # End df_read()
 
-fpath_save = '../output/test/'
+fpath_save = '../output/adaptive/'
 
 # read total effects calculated by different PCE settings.
-nsample = 156
+nsample = 90
 fileread = read_total_effects(fpath_save, product_uniform='uniform')
 df_temp = pd.DataFrame.from_dict(fileread[fileread.files[-1]][()][f'nsample_{nsample}']).T
 df_raw = pd.DataFrame(index=['ST', 'ST_lower', 'ST_upper'], columns=list(df_temp.index),
     data = [df_temp.mean(axis=1), df_temp.quantile(q=0.025, axis=1), df_temp.quantile(q=0.975, axis=1)]).T
 df_raw = df_read(df_raw, 'PCE-Uniform', 2)
 
-fileread = read_total_effects(fpath_save, product_uniform='beta')
-df_temp = pd.DataFrame.from_dict(fileread[fileread.files[-1]][()][f'nsample_{nsample}']).T
-df_beta = pd.DataFrame(index=['ST', 'ST_lower', 'ST_upper'], columns=list(df_temp.index),
-    data = [df_temp.mean(axis=1), df_temp.quantile(q=0.025, axis=1), df_temp.quantile(q=0.975, axis=1)]).T
-df_beta = df_read(df_beta, 'PCE-Beta', 2)
+# fileread = read_total_effects(fpath_save, product_uniform='beta')
+# df_temp = pd.DataFrame.from_dict(fileread[fileread.files[-1]][()][f'nsample_{nsample}']).T
+# df_beta = pd.DataFrame(index=['ST', 'ST_lower', 'ST_upper'], columns=list(df_temp.index),
+#     data = [df_temp.mean(axis=1), df_temp.quantile(q=0.025, axis=1), df_temp.quantile(q=0.975, axis=1)]).T
+# df_beta = df_read(df_beta, 'PCE-Beta', 2)
 
 fileread = read_total_effects(fpath_save, product_uniform='exact')
 df_temp = pd.DataFrame.from_dict(fileread[fileread.files[-1]][()][f'nsample_{nsample}']).T
@@ -60,12 +60,12 @@ df_raw['Model_group'] = None
 for ii in range(df_exact.shape[0]):
     param = df_exact.Parameters[ii]
     df_raw.loc[df_raw[df_raw.Parameters==param].index, 'Model_group'] = df_exact.Model_group[ii]
-    df_beta.loc[df_beta[df_beta.Parameters==param].index, 'Model_group'] = df_exact.Model_group[ii]
+    # df_exact.loc[df_exact[df_exact.Parameters==param].index, 'Model_group'] = df_exact.Model_group[ii]
 
 df_plot = df_exact.filter(items=['Parameters', 'ST', 'ST_lower', 'ST_upper'])
 df_plot.rename(columns={'ST': 'ST_exact'})
-df_plot['ST_Beta'], df_plot['ST_Beta_lower'], df_plot['ST_Beta_upper'] = \
-    df_beta.ST, df_beta.ST_lower, df_beta.ST_upper 
+# df_plot['ST_Beta'], df_plot['ST_Beta_lower'], df_plot['ST_Beta_upper'] = \
+#     df_beta.ST, df_beta.ST_lower, df_beta.ST_upper 
 df_plot['ST_Uniform'], df_plot['ST_Uniform_lower'], df_plot['ST_Uniform_upper'] = \
     df_raw.ST, df_raw.ST_lower, df_raw.ST_upper
 
