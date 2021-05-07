@@ -26,7 +26,7 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
         samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
         len_params = variable.num_vars()
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_step = [10, 550, 10]
+    n_strat, n_end, n_step = [20, 550, 10]
     n_list = [*np.arange(n_strat, n_end+1, n_step)]
     errors_cv_all = {}
     partial_results = {}

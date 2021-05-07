@@ -37,7 +37,6 @@ def get_poly_opts(variable, product_uniform):
     basis_opts = dict()
     identity_map_indices = []
     cnt = 0
-    # import pdb; pdb.set_trace()
     for ii in range(variable.nunique_vars):
         
         rv = variable.unique_variables[ii]
@@ -83,7 +82,6 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
 
     # Find best PCE basis
     nfolds = min(nboot, train_samples.shape[1])
-    # import pdb; pdb.set_trace()
     solver_options = {'cv': nfolds}
     options = {'basis_type': 'expanding_basis', 'variable': variable,
                'verbosity': 0, 'poly_opts': poly_opts,

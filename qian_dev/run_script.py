@@ -71,7 +71,7 @@ if (variable.num_vars()) == 11:
 # and 1000 samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
-key_use = [f'nsample_{ii}' for ii in np.arange(100, 300, 10)]
+key_use = [f'nsample_{ii}' for ii in np.arange(20, 130, 10)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 if product_uniform == 'beta':
     dist_type = 'beta'
@@ -90,27 +90,8 @@ fix_group_ranking(input_path, variable, output_path, samples, values,
 # and increasing samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with increasing samples and a PCE-{product_uniform}--------')
 from error_fixing import fix_increase_sample
-key_use = [f'nsample_{ii}' for ii in [156]]
+key_use = [f'nsample_{ii}' for ii in [90]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 
             seed, sample_range, product_uniform, filename)
-
-
-### test##
-import pickle
-
-# output_path = '../output/adaptive/50_200/'
-dist_type = 'exact'
-filename = f'adaptive-reduce-{dist_type}_552'
-output_path = '../output/adaptive/adaptive_100/'
-approx_list_all = pickle.load(
-        open(f'{output_path}{filename}-approx-list.pkl', "rb"))
-
-pce_list = approx_list_all['nsample_552']
-rmse = []
-std_true = np.std(values.flatten())
-for pce in pce_list:
-    y_pce = pce(samples[:, :])
-    rmse_temp = np.std(values.flatten()[:] - y_pce.flatten())
-    rmse/std_true
