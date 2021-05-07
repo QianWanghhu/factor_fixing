@@ -16,13 +16,18 @@ from basic.utils import sa_df_format
 # # import the original parameter sets
 def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
 
-    variable, _ = read_specify('parameter', 'reduced', product_uniform, num_vars=11)
-
-    len_params = variable.num_vars()
-    samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
+    if not product_uniform:
+        samples, values = read_specify('model', 'full', product_uniform=False, num_vars=22)
+        # import parameter inputs and generate the dataframe of analytical ratios between sensitivity indices
+        variable, param_all = read_specify('parameter', 'full', product_uniform=False, num_vars=22)
+        len_params = variable.num_vars()
+    else:
+        variable, _ = read_specify('parameter', 'reduced', product_uniform, num_vars=11)
+        samples, values = read_specify('model', 'reduced', product_uniform, num_vars=11)
+        len_params = variable.num_vars()
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
-    n_strat, n_end, n_step = [160, 500, 10]
-    n_list = [*np.arange(n_strat, n_end+1, n_step), 552]
+    n_strat, n_end, n_step = [10, 550, 10]
+    n_list = [*np.arange(n_strat, n_end+1, n_step)]
     errors_cv_all = {}
     partial_results = {}
     total_effects_all = {}
@@ -64,8 +69,10 @@ def run_pya(outpath, nboot, seed, product_uniform):
         dist_type = 'beta'
     elif product_uniform == 'exact':
         dist_type = 'exact'
-    else:
+    elif product_uniform == 'uniform':
         dist_type = 'uniform'
+    else:
+        dist_type = 'full'
     filename = f'adaptive-reduce-{dist_type}_552.npz'
 
     print(f'{outpath}{filename}')
