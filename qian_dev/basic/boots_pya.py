@@ -52,7 +52,7 @@ def get_poly_opts(variable, product_uniform):
         
         quad_rules = []
         inds = index_product[cnt]
-        nquad_samples_1d = 50
+        nquad_samples_1d = 100
 
         for jj in inds:
             a, b = full_variable.all_variables()[jj].interval(1)
@@ -62,7 +62,8 @@ def get_poly_opts(variable, product_uniform):
             quad_rules.append((x, w))
         funs = [identity_fun]*len(inds)
         basis_opts['basis%d' % ii] = {'poly_type': 'product_indpnt_vars',
-                                      'var_nums': [ii], 'funs': funs,
+                                      'var_nums': variable.unique_variable_indices[ii],
+                                      'funs': funs,
                                       'quad_rules': quad_rules}
         cnt += 1
         
@@ -77,21 +78,12 @@ from pyapprox.multivariate_polynomials import \
         define_poly_options_from_variable_transformation
 def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     poly_opts, var_trans = get_poly_opts(variable, product_uniform)
-
-    if nboot == 1:
-        indices = compute_hyperbolic_indices(variable.num_vars(), 2)
-        options = {'basis_type': 'fixed', 'variable': variable,
-                   'poly_opts': poly_opts,
-                   'options': {'linear_solver_options': dict(),
-                               'indices': indices, 'solver_type': 'lstsq'}}
-        approx_res = approximate(
-            train_samples, train_values, 'polynomial_chaos', options)
-        return approx_res.approx
-    
+   
     nterms = total_degree_space_dimension(train_samples.shape[0], 2)
 
     # Find best PCE basis
     nfolds = min(nboot, train_samples.shape[1])
+    # import pdb; pdb.set_trace()
     solver_options = {'cv': nfolds}
     options = {'basis_type': 'expanding_basis', 'variable': variable,
                'verbosity': 0, 'poly_opts': poly_opts,
@@ -121,6 +113,7 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     approx_list, residues_list, cv_score = cross_validate_approximation(
         train_samples, train_values, options, nfolds,
         'polynomial_chaos', random_folds='sklearn')
+    # import pdb; pdb.set_trace()
     pce_cv_total_effects = []
     pce_cv_main_effects = []
     for ii in range(nfolds):
