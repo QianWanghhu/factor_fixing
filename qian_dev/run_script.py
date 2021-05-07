@@ -22,7 +22,7 @@ model_ts_reduced()
 # apply_pya to produce the sensitivities of parameters for different PCEs
 from apply_pya import run_pya, pce_22
 outpath = file_settings()[0]
-num_pce=np.inf; seed=888
+num_pce = 100; seed = 2345
 # fun num folds set to min(num_pce, ntrain_samples)
 # so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
@@ -34,13 +34,13 @@ print('--------PCE-U with increasing samples--------')
 run_pya(outpath, num_pce, seed, product_uniform='uniform')
 
 # PCE with Beta distributions
-print('--------PCE-B with increasing samples--------')
-run_pya(outpath, num_pce, seed, product_uniform='beta')
+# print('--------PCE-B with increasing samples--------')
+# run_pya(outpath, num_pce, seed, product_uniform='beta')
 
 # PCE with 22 parameters
 print('----------------PCE-22----------------')
-pce_22(num_pce, seed, 552)
-
+run_pya(outpath, num_pce, seed, product_uniform=False)
+# pce_22(num_pce, seed, 552)
 ##==============================##============================##
 # evaluate the uncertainty measures from fixing parameters
 # import variables and samples for PCE
@@ -71,7 +71,7 @@ if (variable.num_vars()) == 11:
 # and 1000 samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
-key_use = [f'nsample_{ii}' for ii in np.arange(50, 100, 10)]
+key_use = [f'nsample_{ii}' for ii in np.arange(100, 300, 10)]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 if product_uniform == 'beta':
     dist_type = 'beta'
@@ -97,17 +97,20 @@ fix_increase_sample(input_path, variable, output_path, samples, values,
             seed, sample_range, product_uniform, filename)
 
 
-
 ### test##
 import pickle
 
 # output_path = '../output/adaptive/50_200/'
-output_path = '../output/test/'
+dist_type = 'exact'
+filename = f'adaptive-reduce-{dist_type}_552'
+output_path = '../output/adaptive/adaptive_100/'
 approx_list_all = pickle.load(
         open(f'{output_path}{filename}-approx-list.pkl', "rb"))
 
-pce_list = approx_list_all['nsample_156']
-y_pce = pce_list[0](samples[:, 200:])
-rmse = np.std(values.flatten()[200:] - y_pce.flatten())
+pce_list = approx_list_all['nsample_552']
+rmse = []
 std_true = np.std(values.flatten())
-rmse/std_true
+for pce in pce_list:
+    y_pce = pce(samples[:, :])
+    rmse_temp = np.std(values.flatten()[:] - y_pce.flatten())
+    rmse/std_true
