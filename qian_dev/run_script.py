@@ -33,14 +33,10 @@ run_pya(outpath, num_pce, seed, product_uniform='exact')
 print('--------PCE-U with increasing samples--------')
 run_pya(outpath, num_pce, seed, product_uniform='uniform')
 
-# PCE with Beta distributions
-# print('--------PCE-B with increasing samples--------')
-# run_pya(outpath, num_pce, seed, product_uniform='beta')
 
 # PCE with 22 parameters
 print('----------------PCE-22----------------')
 run_pya(outpath, num_pce, seed, product_uniform=False)
-# pce_22(num_pce, seed, 552)
 ##==============================##============================##
 # evaluate the uncertainty measures from fixing parameters
 # import variables and samples for PCE
