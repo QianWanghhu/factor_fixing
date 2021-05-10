@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pyapprox as pya
 from scipy.stats import uniform, beta
+from basic.read_data import read_specify
 
 def to_df(partial_order, fix_dict):
     """
@@ -109,3 +110,26 @@ def sa_df_format(total_effects, variables, param_names, conf_level=0.95):
     sa_df.index = param_names
     return sa_df
 # End df_format()
+
+# clean the dataframe ordered by the sampling-based sensitivity indices
+def read_total_effects(fpath_save, product_uniform):
+    if product_uniform == 'beta':
+        dist_type = 'beta'
+    elif product_uniform == 'exact':
+        dist_type = 'exact'
+    elif product_uniform == 'uniform':
+        dist_type = 'uniform'
+    else:
+        dist_type = 'full'
+    filename = f'adaptive-reduce-{dist_type}_552.npz'
+    fileread = np.load(f'{fpath_save}{filename}', allow_pickle=True)
+    return fileread
+
+def df_read(df, result_type, type_num, product_uniform, num_vars):
+    _, parameters = read_specify('parameter', 'full', product_uniform, num_vars)
+    df.rename(columns={'Unnamed: 0' : 'Parameters'}, inplace=True)
+    df['Parameters'] = parameters
+    df['Type'] = result_type
+    df['Type_num'] = type_num
+    return df
+# End df_read()
