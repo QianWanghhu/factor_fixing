@@ -8,16 +8,13 @@ import pyapprox as pya
 from scipy.stats import uniform, beta
 
 def file_settings():
-    model_dir = '../output/adaptive/'
+    model_dir = '../output/random/'
     input_dir = '../data/'
     model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
     
     param_full = f'{input_dir}parameter.csv'
     param_reduced = f'{input_dir}parameter-adjust.csv'
-    # ranks_reduced_beta = f'{model_dir}partial_reduce_beta_552.json'
-    # ranks_reduced_uni = f'{model_dir}partial_reduce_uniform_552.json'
-    # ranks_reduced_exact = f'{model_dir}partial_reduce_exact_552.json'
     return [model_dir, input_dir, model_ts_full, model_ts_reduced, param_full, \
         param_reduced]
 # END file_settings()
