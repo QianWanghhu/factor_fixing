@@ -12,8 +12,6 @@ from pyapprox.multivariate_polynomials import PolynomialChaosExpansion
 from pyapprox.univariate_quadrature import gauss_jacobi_pts_wts_1D
 from pyapprox.variables import get_distribution_info
 
-from basic.utils import sa_df_format
-
 def identity_fun(x):
     return x
 
@@ -84,8 +82,9 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     nfolds = min(nboot, train_samples.shape[1])
     solver_options = {'cv': nfolds}
     options = {'basis_type': 'expanding_basis', 'variable': variable,
-               'verbosity': 0, 'poly_opts': poly_opts,
+               'verbosity': 1, 'poly_opts': poly_opts,
                 'options': {'max_num_init_terms': nterms,
+                'max_num_expansion_steps_iter': 3,
                'linear_solver_options': solver_options}}
     approx_res = approximate(train_samples, train_values, 'polynomial_chaos', options)
 
