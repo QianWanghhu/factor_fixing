@@ -113,14 +113,7 @@ def sa_df_format(total_effects, variables, param_names, conf_level=0.95):
 
 # clean the dataframe ordered by the sampling-based sensitivity indices
 def read_total_effects(fpath_save, product_uniform):
-    if product_uniform == 'beta':
-        dist_type = 'beta'
-    elif product_uniform == 'exact':
-        dist_type = 'exact'
-    elif product_uniform == 'uniform':
-        dist_type = 'uniform'
-    else:
-        dist_type = 'full'
+    dist_type = dist_return(product_uniform)
     filename = f'adaptive-reduce-{dist_type}_552.npz'
     fileread = np.load(f'{fpath_save}{filename}', allow_pickle=True)
     return fileread
@@ -133,3 +126,14 @@ def df_read(df, result_type, type_num, product_uniform, num_vars):
     df['Type_num'] = type_num
     return df
 # End df_read()
+
+def dist_return(product_uniform):
+    if product_uniform == 'beta':
+        dist_type = 'beta'
+    elif product_uniform == 'exact':
+        dist_type = 'exact'
+    elif product_uniform== 'uniform':
+        dist_type = 'uniform'
+    else:
+        dist_type = 'full'
+    return dist_type
