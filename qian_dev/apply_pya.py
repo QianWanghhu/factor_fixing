@@ -2,16 +2,14 @@
 import numpy as np
 import pandas as pd
 import pyapprox as pya
-from scipy.stats import uniform
 import json
 import os
-import time
 from pyapprox.random_variable_algebra import product_of_independent_random_variables_pdf
 
 from basic.boots_pya import fun
 from basic.partial_rank import partial_rank
 from basic.read_data import read_specify, file_settings
-from basic.utils import sa_df_format
+from basic.utils import sa_df_format, dist_return
 
 # # import the original parameter sets
 def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
@@ -29,72 +27,65 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
 
     ##==========test random sampling=============##
     random_samples = np.random.randint(0, 550, size=(20, 550))
-    for rd in range(random_samples.shape[0]):
-        n_strat, n_end, n_step = [30, 550, 20]
-        n_list = [*np.arange(n_strat, n_end+1, n_step)]
-        errors_cv_all = {}
-        partial_results = {}
-        total_effects_all = {}
-        approx_list_all = {}
-        error_best = values.flatten().std()
-        for i in range(n_strat, n_end+1, n_step):
-        # for i in n_list:
-            if (n_end - i)  < n_step:
-                i = n_end
-            np.random.seed(seed)                                                    
-            errors_cv, _, total_effects, approx_list = fun(
-                variable, samples[:, random_samples[rd][:i]], values[random_samples[rd]][:i], product_uniform, nboot=nboot)
+    # for rd in range(random_samples.shape[0]):
+    n_strat, n_end, n_step = [30, 550, 20]
+    n_list = [*np.arange(n_strat, n_end+1, n_step)]
+    errors_cv_all = {}
+    partial_results = {}
+    total_effects_all = {}
+    approx_list_all = {}
+    error_best = values.flatten().std()
+    for i in range(n_strat, n_end+1, n_step):
+    # for i in n_list:
+        if (n_end - i)  < n_step:
+            i = n_end
+        np.random.seed(seed)                                                    
+        errors_cv, _, total_effects, approx_list = fun(
+            variable, samples[:, :i], values[:i], product_uniform, nboot=nboot)# random_samples[rd][:i]
 
-            # partial ranking
-            total_effects = np.array(total_effects)
-            sa_shape = list(total_effects.shape)[0:2]
-            total_effects = total_effects.reshape((sa_shape))
-            rankings = partial_rank(total_effects,len_params, conf_level=0.95)
-            partial_results[f'nsample_{i}'] = rankings
-            errors_cv_all[f'nsample_{i}'] = errors_cv
-            total_effects_all[f'nsample_{i}'] = total_effects
-            approx_list_all[f'nsample_{i}'] = approx_list 
-            print(f'error_cv: {errors_cv.mean()}')
-        # End for
+        # partial ranking
+        total_effects = np.array(total_effects)
+        sa_shape = list(total_effects.shape)[0:2]
+        total_effects = total_effects.reshape((sa_shape))
+        rankings = partial_rank(total_effects,len_params, conf_level=0.95)
+        partial_results[f'nsample_{i}'] = rankings
+        errors_cv_all[f'nsample_{i}'] = errors_cv
+        total_effects_all[f'nsample_{i}'] = total_effects
+        approx_list_all[f'nsample_{i}'] = approx_list 
+        print(f'error_cv: {errors_cv.mean()}')
+    # End for
 
-        if not os.path.exists(f'{outpath}{rd}'): os.mkdir(f'{outpath}{rd}')
-        np.savez(f'{outpath}{rd}\{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, total_effects=total_effects_all)
-        import pickle
-        pickle.dump(approx_list_all, open(f'{outpath}{rd}\{filename[:-4]}-approx-list.pkl', "wb"))
+    if not os.path.exists(f'{outpath}'): os.mkdir(f'{outpath}')
+    np.savez(f'{outpath}\{filename}',errors_cv=errors_cv_all, sensitivity_indices=partial_results, total_effects=total_effects_all)
+    import pickle
+    pickle.dump(approx_list_all, open(f'{outpath}\{filename[:-4]}-approx-list.pkl', "wb"))
 # END pya_boot_sensitivity()
 
 def run_pya(outpath, nboot, seed, product_uniform):
-    if product_uniform == 'beta':
-        dist_type = 'beta'
-    elif product_uniform == 'exact':
-        dist_type = 'exact'
-    elif product_uniform == 'uniform':
-        dist_type = 'uniform'
-    else:
-        dist_type = 'full'
+    dist_type = dist_return(product_uniform)
     filename = f'adaptive-reduce-{dist_type}_552.npz'
 
     print(f'{outpath}{filename}')
-    if not os.path.exists(f'{outpath}1\{filename}'):
+    if not os.path.exists(f'{outpath}{filename}'):
         pya_boot_sensitivity(
             outpath, nboot, seed, product_uniform, filename)
 
-    for ii in range(20):
+    # for ii in range(20):
 
-        fileread = np.load(f'{outpath}{ii}\{filename}', allow_pickle=True)
-        errors_cv = fileread[fileread.files[0]][()]
-        sensitivity_indices = fileread[fileread.files[1]][()]
-        # Look the error change with the increase of sample size
-        errors_cv = pd.DataFrame.from_dict(errors_cv)
-        error_stats = pd.DataFrame()
-        error_stats['mean'] = np.round(errors_cv.mean(axis=0), 4)
-        error_stats['error_lower'] = np.round(np.quantile(errors_cv, 0.025, axis=0), 4)
-        error_stats['error_upper'] = np.round(np.quantile(errors_cv, 0.975, axis=0), 4)
-        error_stats.index.name = 'index'
+    fileread = np.load(f'{outpath}\{filename}', allow_pickle=True)
+    errors_cv = fileread[fileread.files[0]][()]
+    sensitivity_indices = fileread[fileread.files[1]][()]
+    # Look the error change with the increase of sample size
+    errors_cv = pd.DataFrame.from_dict(errors_cv)
+    error_stats = pd.DataFrame()
+    error_stats['mean'] = np.round(errors_cv.mean(axis=0), 4)
+    error_stats['error_lower'] = np.round(np.quantile(errors_cv, 0.025, axis=0), 4)
+    error_stats['error_upper'] = np.round(np.quantile(errors_cv, 0.975, axis=0), 4)
+    error_stats.index.name = 'index'
 
-        error_stats.to_csv(f'{outpath}{ii}\error_cv_{dist_type}_552.csv')
-        with open(f'{outpath}{ii}\partial_reduce_{dist_type}_552.json', 'w') as fp:
-            json.dump(sensitivity_indices, fp, indent=2)
+    error_stats.to_csv(f'{outpath}\error_cv_{dist_type}_552.csv')
+    with open(f'{outpath}\partial_reduce_{dist_type}_552.json', 'w') as fp:
+        json.dump(sensitivity_indices, fp, indent=2)
 
 
 def pce_22(nboot, seed, ntrain_samples):
