@@ -52,6 +52,7 @@ def get_poly_opts(variable, product_uniform):
         nquad_samples_1d = 100
 
         for jj in inds:
+            # breakpoint()
             a, b = full_variable.all_variables()[jj].interval(1)
             x, w = gauss_jacobi_pts_wts_1D(nquad_samples_1d, 0, 0)
             x = (x+1)/2 # map to [0, 1]
@@ -77,7 +78,7 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     poly_opts, var_trans = get_poly_opts(variable, product_uniform)
    
     nterms = total_degree_space_dimension(train_samples.shape[0], 2)
-
+    # breakpoint()
     # Find best PCE basis
     nfolds = min(nboot, train_samples.shape[1])
     solver_options = {'cv': nfolds}
