@@ -8,8 +8,8 @@ import pyapprox as pya
 from scipy.stats import uniform, beta
 
 def file_settings():
-    model_dir = '../output/lasso_cv10/'
-    input_dir = '../data/'
+    model_dir = '../run_source/output/'
+    input_dir = '../run_source/data/'
     model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
     
@@ -31,8 +31,8 @@ def read_model_ts(filename, num_vars):
     values: np.ndarray, the Quantity of interest to simulate.
     """
     data = np.loadtxt(filename, delimiter=",", skiprows=1)[:,1:]
-    samples = data[:, :num_vars].T
-    values = data[:, num_vars:]
+    samples = data[:, :-1].T
+    values = data[:, -1:]
     return samples, values
 # END read_model_ts()
 
@@ -66,7 +66,6 @@ def read_specify(data_type, param_type, product_uniform, num_vars=22):
             return read_parameters(filenames[5], product_uniform)
     else:
         rank_name = f'{filenames[0]}partial_reduce_{product_uniform}_552.json'
-        # import pdb; pdb.set_trace()
         return read_ranks(rank_name)
 # END read_specify()          
 
@@ -107,8 +106,7 @@ def variables_prep(filename, product_uniform=False, dummy=False):
         # End for()
 
     if dummy == True: univariate_variables.append(uniform(0, 1))
-    # import pdb
-    # pdb.set_trace()
+
     variable = pya.IndependentMultivariateRandomVariable(univariate_variables)
     return variable
     
