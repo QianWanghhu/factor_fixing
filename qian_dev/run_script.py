@@ -5,7 +5,7 @@ Compring different PCEs, uncertainty measures due to factor fixing.
 import numpy as np
 from SALib.util import read_param_file
 
-from basic.utils import adjust_sampling
+from basic.utils import adjust_sampling, dist_return
 from basic.read_data import file_settings, read_specify
  
 ##==============================##============================##
@@ -77,7 +77,7 @@ fix_group_ranking(input_path, variable, output_path, samples, values,
 # and increasing samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with increasing samples and a PCE-{product_uniform}--------')
 from error_fixing import fix_increase_sample
-key_use = [f'nsample_{ii}' for ii in [90]]
+key_use = [f'nsample_{ii}' for ii in [70]]
 partial_order = dict((key, value) for key, value in rankings_all.items() if key in key_use)
 fix_increase_sample(input_path, variable, output_path, samples, values,
     partial_order, index_product, problem, x_fix, x_fix_adjust, 1, 

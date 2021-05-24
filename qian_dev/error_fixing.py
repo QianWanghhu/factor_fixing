@@ -115,7 +115,7 @@ def fix_increase_sample(input_path, variable, output_path, samples, values,
     for ele in f_names:
         dict_measure = {key: error_dict[key][ele] for key in key_outer}
         df = pd.DataFrame.from_dict(dict_measure)
-        df.to_csv(f'{save_path}/{ele}_adaptive.csv')
+        df.to_csv(f'{save_path}/{ele}_adaptive_70.csv')
 
     df_stats = pd.DataFrame(data=conf_uncond, index=np.arange(nstart, nstop + 1, nstep))
-    df_stats.to_csv(f'{save_path}/stats_uncond_adaptive.csv')
+    df_stats.to_csv(f'{save_path}/stats_uncond_adaptive_70.csv')
