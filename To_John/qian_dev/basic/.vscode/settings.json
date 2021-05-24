@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "F:\\Anaconda3\\envs\\pce_fixing\\python.exe",
+    "python.venvFolders": [
+        "F:\\Anaconda3\\envs\\"
+    ],
+    "python.dataScience.jupyterServerURI": "local"
+}
