@@ -8,8 +8,8 @@ import pyapprox as pya
 from scipy.stats import uniform, beta
 
 def file_settings():
-    model_dir = '../run_source/output/'
-    input_dir = '../run_source/data/'
+    model_dir = '../output/adaptive/'
+    input_dir = '../data/'
     model_ts_full = f'{input_dir}2000_2014_ave_annual.csv'
     model_ts_reduced = f'{model_dir}samples_adjust.csv'
     
