@@ -18,7 +18,7 @@ model_ts_reduced()
 # apply_pya to produce the sensitivities of parameters for different PCEs
 from apply_pya import run_pya
 outpath = file_settings()[0]
-num_pce = 10; seed = 727
+num_pce = 100; seed = 727
 # fun num folds set to min(num_pce, ntrain_samples)
 # so num_pce = np.inf should use leave one out cross validation
 # PCE with Exact product distributions
