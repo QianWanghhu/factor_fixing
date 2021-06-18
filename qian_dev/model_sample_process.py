@@ -16,10 +16,11 @@ def samples_combine():
     filepath = file_settings()[1]
     # combine TSS results into a file
     filenames = os.listdir(filepath)
-    for fn in filenames:
-        if 'Tss' in fn:
+    n_list = [int(fn.split('_')[0]) for fn in filenames if 'Tss' in fn]
+    n_list.sort()
+    for fn in n_list:
             print(fn)
-            tss_temp = pd.read_csv(f'{filepath}{fn}', index_col='# Date')
+            tss_temp = pd.read_csv(f'{filepath}{fn}_Tss_124001B.csv', index_col='# Date')
             tss_temp.index = pd.to_datetime(tss_temp.index)
             tss_temp = tss_temp.loc['2000-07-01':'2014-06-30',:]
             tss_temp.dropna(axis=1, how='any', inplace=True)
@@ -34,7 +35,7 @@ def samples_combine():
 
 def model_ts_reduced():
     file_names = file_settings()
-    fpath_save = file_names[0]
+    fpath_save = file_names[1]
     filename = file_names[2]
     # import samples and values
     if not os.path.exists(filename):
