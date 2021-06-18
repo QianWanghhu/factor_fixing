@@ -28,7 +28,7 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
     ##==========test random sampling=============##
     random_samples = np.random.randint(0, 550, size=(20, 550))
     # for rd in range(random_samples.shape[0]):
-    n_strat, n_end, n_step = [50, 2000, 100]
+    n_strat, n_end, n_step = [30, 550, 20]
     n_list = [*np.arange(n_strat, n_end+1, n_step)]
     errors_cv_all = {}
     partial_results = {}
