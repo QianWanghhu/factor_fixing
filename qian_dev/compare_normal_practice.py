@@ -10,7 +10,7 @@ from basic.plot import short_name
 
 output_path = file_settings()[0]
 # read total effects calculated by different PCE settings.
-nsample = 450
+nsample = 190
 fileread = read_total_effects(output_path, product_uniform=False)
 df_temp = pd.DataFrame.from_dict(fileread[fileread.files[-1]][()][f'nsample_{nsample}']).T
 df_raw = pd.DataFrame(index=['ST', 'ST_lower', 'ST_upper'], columns=list(df_temp.index),
@@ -37,14 +37,14 @@ x_sample = np.loadtxt(f'{output_path}metric_samples.txt')
 # and 1000 samples are used to calculate the uncertainty measures
 print(f'--------Calculate uncertainty measures due to FF with PCE-{product_uniform}--------')
 from error_fixing import fix_group_ranking
-key_use = [f'nsample_{ii}' for ii in [450]]
+key_use = [f'nsample_{ii}' for ii in [nsample]]
 dist_type = 'full'
 filename = f'adaptive-reduce-{dist_type}_552'
 
 num_pce = 100; seed=1000
 sa_raw = pd.read_csv(f'{output_path}sa_pce_22.csv')
 thresholds = [0.01, 0.1]
-for thsd in thresholds[:1]:
+for thsd in thresholds[1:]:
     ind_fix = list(sa_raw[sa_raw.ST<thsd].index) 
     partial_order = {f'nsample_{nsample}': {'0': ind_fix}}
     fix_group_ranking(input_path, variable, output_path, samples, values,
