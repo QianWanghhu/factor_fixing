@@ -85,8 +85,7 @@ def fun(variable, train_samples, train_values, product_uniform, nboot=10):
     options = {'basis_type': 'expanding_basis', 'variable': variable,
                'verbosity': 1, 'poly_opts': poly_opts,
                 'options': {'max_num_init_terms': nterms,
-                'max_num_expansion_steps_iter': 3,
-               'linear_solver_options': solver_options}}
+               'linear_solver_options': solver_options}} # 'max_num_expansion_steps_iter': 3
     approx_res = approximate(train_samples, train_values, 'polynomial_chaos', options)
 
     # Compute PCE on each fold using best PCE basis and least squares
