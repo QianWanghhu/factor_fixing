@@ -26,7 +26,7 @@ def pya_boot_sensitivity(outpath, nboot, seed, product_uniform, filename):
     # Adaptively increase the size of training dataset and conduct the bootstrap based partial ranking
 
     ##==========test random sampling=============##
-    random_samples = np.random.randint(0, 450, size=(20, 550))
+    random_samples = np.random.randint(0, 450, size=(20, 450))
     # for rd in range(random_samples.shape[0]):
     n_strat, n_end, n_step = [30, 450, 20]
     n_list = [*np.arange(n_strat, n_end+1, n_step)]
