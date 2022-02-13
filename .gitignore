@@ -144,11 +144,6 @@ qian_dev/dischare.py.baiduyun.uploading.cfg
 
 *.cfg
 
-output/
-
-data/
-
-_data/
 
 John's email.txt
 
@@ -157,3 +152,5 @@ qian_dev/res.txt
 run_source/pest_source/
 
 run_source/reagent.xml
+
+output/Run0915/
