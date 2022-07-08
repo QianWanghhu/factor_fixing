@@ -1,4 +1,4 @@
-#!/usr/bin/env ffexplore
+#!/usr/bin/env oed
 import numpy as np
 import pyapprox as pya
 from scipy.stats import uniform
