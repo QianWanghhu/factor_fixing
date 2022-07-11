@@ -63,7 +63,6 @@ def sample(problem, N, calc_second_order=True, skip_values=1000, deleted=True,
         base_sequence = scale_samples(base_sequence, problem['bounds']) 
     else: 
         # scaling values to other distributions based on inverse CDFs 
-        breakpoint()
         base_sequence = _nonuniform_scale_samples( 
             base_sequence, problem['bounds'], problem['dists']) 
     base_sequence = np.hstack([base_sequence[0: (N + skip_values), :],  

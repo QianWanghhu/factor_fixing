@@ -146,7 +146,7 @@ def group_fix(partial_result, func, x, y_true, x_default,
             for ele in range(len(measures_all)):
                 measures_all[ele][i] = skip_calcul[ele]
         # End if
-    # End for()
+    # End for
 
     names = ['cf_upper', 'cf_lower', 'ks', 'pvalue', 'cv', 
             'cf_upper_upper', 'cf_upper_lower', 'cf_lower_upper', 
